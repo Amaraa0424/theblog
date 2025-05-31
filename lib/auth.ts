@@ -1,9 +1,10 @@
 import { verify, sign } from 'jsonwebtoken';
 import { hash, compare } from 'bcryptjs';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { NextAuthOptions } from 'next-auth';
+import { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
+import { verifyPassword, generateToken } from './auth-utils';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-key';
 
@@ -44,47 +45,56 @@ export function generateResetToken(): string {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: 'jwt',
-  },
-  pages: {
-    signIn: '/login',
-  },
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
+          throw new Error('Please enter your email and password');
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          // Find user by email
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          });
 
-        if (!user) {
-          throw new Error('Invalid credentials');
+          if (!user) {
+            throw new Error('No user found with this email');
+          }
+
+          // Verify password
+          const isValid = await verifyPassword(credentials.password, user.password);
+          if (!isValid) {
+            throw new Error('Invalid password');
+          }
+
+          // Return user object (without password)
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          throw error;
         }
-
-        const isValid = await verifyPassword(credentials.password, user.password);
-
-        if (!isValid) {
-          throw new Error('Invalid credentials');
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
-      },
-    }),
+      }
+    })
   ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -109,4 +119,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 }; 
