@@ -1,5 +1,5 @@
 import { builder } from '../../lib/builder';
-import { hashPassword, verifyPassword, generateToken, generateVerificationToken, generateResetToken } from '../../lib/auth';
+import { hashPassword, verifyPassword, generateToken, generateVerificationToken, generateResetToken } from '../../lib/auth-utils';
 import { addDays } from 'date-fns';
 
 builder.mutationType({

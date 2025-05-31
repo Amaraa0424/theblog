@@ -1,42 +1,15 @@
-import { verify, sign } from 'jsonwebtoken';
+import { verify } from 'jsonwebtoken';
 import { hash } from 'bcryptjs';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-import { verifyPassword, generateToken } from './auth-utils';
+import { verifyPassword, generateToken, verifyToken, generateVerificationToken, generateResetToken } from './auth-utils';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-key';
 
 export async function hashPassword(password: string): Promise<string> {
   return hash(password, 12);
-}
-
-export function generateToken(userId: string, isAdmin: boolean): string {
-  return sign(
-    {
-      userId,
-      isAdmin,
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-}
-
-export function verifyToken(token: string): { userId: string; isAdmin: boolean } | null {
-  try {
-    return verify(token, JWT_SECRET) as { userId: string; isAdmin: boolean };
-  } catch {
-    return null;
-  }
-}
-
-export function generateVerificationToken(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
-
-export function generateResetToken(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
 export const authOptions: NextAuthOptions = {
