@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -62,6 +63,7 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
         <div className="ml-auto flex items-center space-x-4">
+          <ThemeToggle />
           {status === "loading" ? (
             <div className="h-9 w-20 animate-pulse rounded bg-muted" />
           ) : session ? (
