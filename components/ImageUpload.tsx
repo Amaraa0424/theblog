@@ -3,7 +3,7 @@
 import { CldUploadWidget } from 'next-cloudinary';
 import type { CloudinaryUploadWidgetResults } from 'next-cloudinary';
 import Image from 'next/image';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { ImagePlus } from 'lucide-react';
 import { cloudinary } from '@/lib/cloudinary';
 
@@ -15,6 +15,11 @@ interface ImageUploadProps {
 export function ImageUpload({ onChange, value }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(value);
+
+  // Update imageUrl when value prop changes
+  useEffect(() => {
+    setImageUrl(value);
+  }, [value]);
 
   const handleUpload = useCallback((results: CloudinaryUploadWidgetResults) => {
     console.log('Upload callback triggered');

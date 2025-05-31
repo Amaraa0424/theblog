@@ -125,6 +125,14 @@ export default function EditPost() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <div className="space-y-2">
+            <Label>Featured Image (optional)</Label>
+            <ImageUpload
+              value={image}
+              onChange={setImage}
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
@@ -150,14 +158,6 @@ export default function EditPost() {
               content={content}
               onChange={setContent}
               placeholder="Write your post content here..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Featured Image (optional)</Label>
-            <ImageUpload
-              value={image}
-              onChange={setImage}
             />
           </div>
 

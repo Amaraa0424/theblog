@@ -7,7 +7,9 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
-import { Box, Button, ButtonGroup, IconButton, Tooltip } from '@mui/material';
+import TextStyle from '@tiptap/extension-text-style';
+import { Extension } from '@tiptap/core';
+import { Box, Button, ButtonGroup, IconButton, Tooltip, Select, MenuItem } from '@mui/material';
 import {
   FormatBold,
   FormatItalic,
@@ -24,14 +26,92 @@ import {
   LinkOff,
   Undo,
   Redo,
+  FormatSize,
 } from '@mui/icons-material';
 import { useEffect } from 'react';
+
+// Custom extension for font size
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize,
+            renderHTML: attributes => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize: (fontSize: string) => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize }).run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize: null }).run();
+      },
+    };
+  },
+});
+
+// Custom extension for font weight
+const FontWeight = Extension.create({
+  name: 'fontWeight',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontWeight: {
+            default: null,
+            parseHTML: element => element.style.fontWeight,
+            renderHTML: attributes => {
+              if (!attributes.fontWeight) return {};
+              return { style: `font-weight: ${attributes.fontWeight}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontWeight: (weight: string) => ({ chain }) => {
+        return chain().setMark('textStyle', { fontWeight: weight }).run();
+      },
+      unsetFontWeight: () => ({ chain }) => {
+        return chain().setMark('textStyle', { fontWeight: null }).run();
+      },
+    };
+  },
+});
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
   placeholder?: string;
 }
+
+const fontSizes = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px'];
+const fontWeights = ['400', '500', '600', '700', '800', '900'];
 
 export function RichTextEditor({ content, onChange, placeholder = 'Write something...' }: RichTextEditorProps) {
   const editor = useEditor({
@@ -51,6 +131,9 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      TextStyle,
+      FontSize,
+      FontWeight,
     ],
     content: content || '',
     onUpdate: ({ editor }) => {
@@ -95,6 +178,33 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
   return (
     <Box className="border rounded-lg overflow-hidden">
       <Box className="border-b bg-background p-2 flex flex-wrap gap-1">
+        <ButtonGroup size="small" variant="outlined">
+          <Select
+            size="small"
+            value={editor.getAttributes('textStyle').fontSize || '16px'}
+            onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
+            className="min-w-[80px]"
+          >
+            {fontSizes.map((size) => (
+              <MenuItem key={size} value={size}>
+                {size}
+              </MenuItem>
+            ))}
+          </Select>
+          <Select
+            size="small"
+            value={editor.getAttributes('textStyle').fontWeight || '400'}
+            onChange={(e) => editor.chain().focus().setFontWeight(e.target.value).run()}
+            className="min-w-[80px]"
+          >
+            {fontWeights.map((weight) => (
+              <MenuItem key={weight} value={weight}>
+                {weight}
+              </MenuItem>
+            ))}
+          </Select>
+        </ButtonGroup>
+
         <ButtonGroup size="small" variant="outlined">
           <Tooltip title="Bold">
             <IconButton
