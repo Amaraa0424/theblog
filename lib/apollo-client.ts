@@ -9,7 +9,7 @@ const httpLink = createHttpLink({
 const authLink = setContext(async (_, { headers }) => {
   // Get the authentication token from NextAuth session
   const session = await getSession();
-
+  
   // Return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -21,5 +21,5 @@ const authLink = setContext(async (_, { headers }) => {
 
 export const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+      cache: new InMemoryCache(),
 }); 

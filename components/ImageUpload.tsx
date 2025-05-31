@@ -27,10 +27,10 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
       if (!file.type.startsWith('image/')) {
         toast.error('Please upload an image file');
-        return;
-      }
+      return;
+    }
 
-      try {
+    try {
         setIsUploading(true);
 
         // Create a FormData instance
@@ -45,16 +45,16 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
         if (!response.ok) {
           throw new Error('Failed to upload image');
-        }
+      }
 
         const data = await response.json();
         onChange(data.url);
         toast.success('Image uploaded successfully');
       } catch (error: any) {
         toast.error(error.message || 'Failed to upload image');
-      } finally {
+    } finally {
         setIsUploading(false);
-      }
+    }
     },
     [onChange]
   );
@@ -82,14 +82,14 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
         {value ? (
           <div className="relative aspect-square h-full w-full">
-            <Image
+                  <Image
               src={value}
               alt="Uploaded image"
               className="rounded-lg object-cover"
-              fill
-            />
-          </div>
-        ) : (
+                    fill
+                  />
+                </div>
+              ) : (
           <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
             <Upload className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
@@ -97,15 +97,15 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
                 ? 'Drop the image here'
                 : 'Drag & drop an image here, or click to select'}
             </p>
-          </div>
-        )}
+                      </div>
+                  )}
 
         {isUploading && (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/80">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        )}
-      </div>
+                </div>
+              )}
+            </div>
 
       {value && (
         <Button

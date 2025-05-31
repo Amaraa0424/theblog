@@ -30,22 +30,22 @@ export default function RootLayout({
         >
           <AuthProvider>
             <ApolloProvider>
-              <div className="relative min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1 container mx-auto px-4 py-8">
-                  {children}
-                </main>
+          <div className="relative min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1 container mx-auto px-4 py-8">
+              {children}
+            </main>
                 <footer className="border-t py-6 md:py-0">
                   <div className="container mx-auto flex h-14 items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Amaraa doesn't trust social media
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      © {new Date().getFullYear()} TheBlog. All rights reserved.
-                    </p>
-                  </div>
-                </footer>
+                <p className="text-sm text-muted-foreground">
+                  Amaraa doesn't trust social media
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  © {new Date().getFullYear()} TheBlog. All rights reserved.
+                </p>
               </div>
+            </footer>
+          </div>
               <Toaster />
             </ApolloProvider>
           </AuthProvider>

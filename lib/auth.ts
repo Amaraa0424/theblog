@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Please enter your email and password');
-        }
+}
 
         try {
           // Find user by email
@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
 
           if (!user) {
             throw new Error('No user found with this email');
-          }
+}
 
           // Verify password
           const isValid = await verifyPassword(credentials.password, user.password);
@@ -52,8 +52,8 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error('Auth error:', error);
           throw error;
-        }
-      }
+  }
+}
     })
   ],
   session: {
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.accessToken = generateToken(user.id, user.role === 'ADMIN');
-      }
+}
       return token;
     },
     async session({ session, token }) {

@@ -8,7 +8,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import TextStyle from '@tiptap/extension-text-style';
-import { Extension } from '@tiptap/core';
+import { Extension, type Editor, type Range, type CommandProps } from '@tiptap/core';
 import { Box, Button, ButtonGroup, IconButton, Tooltip, Select, MenuItem } from '@mui/material';
 import {
   FormatBold,
@@ -30,14 +30,41 @@ import {
 } from '@mui/icons-material';
 import { useEffect } from 'react';
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    fontSize: {
+      /**
+       * Set the font size
+       */
+      setFontSize: (fontSize: string) => ReturnType;
+      /**
+       * Unset the font size
+       */
+      unsetFontSize: () => ReturnType;
+    };
+    fontWeight: {
+      /**
+       * Set the font weight
+       */
+      setFontWeight: (weight: string) => ReturnType;
+      /**
+       * Unset the font weight
+       */
+      unsetFontWeight: () => ReturnType;
+    };
+  }
+}
+
 // Custom extension for font size
 const FontSize = Extension.create({
   name: 'fontSize',
+
   addOptions() {
     return {
       types: ['textStyle'],
     };
   },
+
   addGlobalAttributes() {
     return [
       {
@@ -55,14 +82,21 @@ const FontSize = Extension.create({
       },
     ];
   },
+
   addCommands() {
     return {
-      setFontSize: (fontSize: string) => ({ chain }) => {
-        return chain().setMark('textStyle', { fontSize }).run();
-      },
-      unsetFontSize: () => ({ chain }) => {
-        return chain().setMark('textStyle', { fontSize: null }).run();
-      },
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain }: CommandProps) =>
+          chain()
+            .setMark('textStyle', { fontSize })
+            .run(),
+      unsetFontSize:
+        () =>
+        ({ chain }: CommandProps) =>
+          chain()
+            .setMark('textStyle', { fontSize: null })
+            .run(),
     };
   },
 });
@@ -70,11 +104,13 @@ const FontSize = Extension.create({
 // Custom extension for font weight
 const FontWeight = Extension.create({
   name: 'fontWeight',
+
   addOptions() {
     return {
       types: ['textStyle'],
     };
   },
+
   addGlobalAttributes() {
     return [
       {
@@ -92,14 +128,21 @@ const FontWeight = Extension.create({
       },
     ];
   },
+
   addCommands() {
     return {
-      setFontWeight: (weight: string) => ({ chain }) => {
-        return chain().setMark('textStyle', { fontWeight: weight }).run();
-      },
-      unsetFontWeight: () => ({ chain }) => {
-        return chain().setMark('textStyle', { fontWeight: null }).run();
-      },
+      setFontWeight:
+        (weight: string) =>
+        ({ chain }: CommandProps) =>
+          chain()
+            .setMark('textStyle', { fontWeight: weight })
+            .run(),
+      unsetFontWeight:
+        () =>
+        ({ chain }: CommandProps) =>
+          chain()
+            .setMark('textStyle', { fontWeight: null })
+            .run(),
     };
   },
 });
@@ -132,8 +175,8 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
         types: ['heading', 'paragraph'],
       }),
       TextStyle,
-      FontSize,
-      FontWeight,
+      FontSize.configure(),
+      FontWeight.configure(),
     ],
     content: content || '',
     onUpdate: ({ editor }) => {

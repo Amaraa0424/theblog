@@ -85,43 +85,43 @@ export function PostMenu({ post }: PostMenuProps) {
   };
 
   const handleDelete = async () => {
-    try {
-      await deletePost({ variables: { id: post.id } });
-    } catch (error) {
-      console.error('Error deleting post:', error);
+      try {
+        await deletePost({ variables: { id: post.id } });
+      } catch (error) {
+        console.error('Error deleting post:', error);
     }
   };
 
   return (
     <>
-      <div className="absolute top-2 right-2 z-10">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 bg-black/30 hover:bg-black/50 cursor-pointer hover:text-white text-white rounded-full"
-            >
-              <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEdit} disabled={loading}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
+    <div className="absolute top-2 right-2 z-10">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 bg-black/30 hover:bg-black/50 cursor-pointer hover:text-white text-white rounded-full"
+          >
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleEdit} disabled={loading}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem
               onClick={() => setIsDeleteDialogOpen(true)}
-              disabled={loading}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            disabled={loading}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

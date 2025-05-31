@@ -12,9 +12,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <SessionProvider>
-        <ApolloWrapper>{children}</ApolloWrapper>
-      </SessionProvider>
+    <SessionProvider>
+      <ApolloWrapper>{children}</ApolloWrapper>
+    </SessionProvider>
     </ThemeProvider>
   );
 } 

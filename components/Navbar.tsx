@@ -117,7 +117,7 @@ export function Navbar() {
                       {getInitials(userData?.me?.name || "User")}
                     </AvatarFallback>
                   </Avatar>
-                </Button>
+              </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
@@ -128,7 +128,7 @@ export function Navbar() {
                     <p className="text-xs leading-none text-muted-foreground">
                       {userData?.me?.email}
                     </p>
-                  </div>
+            </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>

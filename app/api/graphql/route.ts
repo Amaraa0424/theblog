@@ -23,11 +23,11 @@ const { handleRequest } = createYoga({
       };
     } catch (error) {
       console.error('Error getting token:', error);
-      return {
-        prisma,
+    return {
+      prisma,
         userId: undefined,
         isAdmin: false,
-      };
+    };
     }
   },
 });
