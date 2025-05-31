@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TheBlog - Modern Blogging Platform
+
+A full-featured blogging platform built with Next.js, GraphQL, and Prisma. This application provides a modern, responsive interface for creating, managing, and sharing blog posts with features like rich text editing, image uploads, categories, and social interactions.
+
+## Features
+
+- 🔐 User authentication with NextAuth.js
+- 📝 Rich text editor with TipTap
+- 🖼️ Image upload support with Cloudinary
+- 🏷️ Category management for posts
+- 👍 Social features (likes, comments, shares)
+- 🎨 Beautiful UI with Tailwind CSS and shadcn/ui
+- 🌓 Dark/Light mode support
+- 🚀 GraphQL API with Pothos and Apollo
+- 📱 Fully responsive design
+
+## Tech Stack
+
+- **Frontend:**
+  - Next.js 15
+  - React 19
+  - Apollo Client
+  - TipTap Editor
+  - Tailwind CSS
+  - shadcn/ui components
+
+- **Backend:**
+  - GraphQL with Apollo Server
+  - Pothos GraphQL Schema Builder
+  - Prisma ORM
+  - NextAuth.js for authentication
+
+- **Database:**
+  - PostgreSQL (via Prisma)
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+- Node.js (v18 or higher)
+- npm or yarn
+- PostgreSQL database
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/theblog.git
+cd theblog
+```
 
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up environment variables:
+Create a .env file in the root directory with the following variables:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/theblog"
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+```
+
+4. Set up the database:
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+5. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/app` - Next.js app router pages and layouts
+- `/components` - Reusable React components
+- `/graphql` - GraphQL schema, resolvers, and types
+- `/lib` - Utility functions and configurations
+- `/prisma` - Database schema and migrations
+- `/public` - Static assets
+- `/types` - TypeScript type definitions
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Run development server with Turbopack
+- `npm run build` - Build the application for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint for code linting
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Deploy on Vercel
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [Apollo GraphQL](https://www.apollographql.com/)
+- [Prisma](https://www.prisma.io/)
+- [TipTap](https://tiptap.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
