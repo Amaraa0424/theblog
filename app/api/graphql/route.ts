@@ -1,37 +1,41 @@
-import { ApolloServer } from '@apollo/server';
-import { startServerAndCreateNextHandler } from '@as-integrations/next';
-import { builder } from '@/lib/builder';
+import { createYoga } from 'graphql-yoga';
+import { schema } from '@/graphql/schema';
+import { cookies } from 'next/headers';
+import { getToken } from 'next-auth/jwt';
+import type { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { type NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-// Import all type definitions to ensure they're included in the schema
-import '@/graphql/types';  // This imports all types in the correct order
-import '@/graphql/queries';
-import '@/graphql/mutations';
-import '@/graphql/scalars/Date';
-
-const schema = builder.toSchema();
-
-const server = new ApolloServer({
+const { handleRequest } = createYoga({
   schema,
-});
+  graphqlEndpoint: '/api/graphql',
+  fetchAPI: { Request: Request, Response: Response },
+  context: async ({ request }: { request: NextRequest }) => {
+    try {
+      const token = await getToken({
+        req: request as any,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
 
-const handler = startServerAndCreateNextHandler(server, {
-  context: async (req: NextRequest) => {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return { prisma };
+      return {
+        prisma,
+        userId: token?.id as string | undefined,
+        isAdmin: token?.role === 'ADMIN',
+      };
+    } catch (error) {
+      console.error('Error getting token:', error);
+      return {
+        prisma,
+        userId: undefined,
+        isAdmin: false,
+      };
     }
-
-    return {
-      prisma,
-      userId: session.user.id,
-      isAdmin: session.user.role === 'ADMIN',
-    };
   },
 });
 
-export { handler as GET, handler as POST }; 
+export async function GET(request: NextRequest) {
+  return handleRequest(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handleRequest(request);
+} 
