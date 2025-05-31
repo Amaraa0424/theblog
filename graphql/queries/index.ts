@@ -4,14 +4,21 @@ builder.queryType({
   fields: (t) => ({
     me: t.prismaField({
       type: 'User',
-      authScopes: {
-        isAuthed: true,
-      },
       resolve: async (query, root, args, ctx) => {
-        return ctx.prisma.user.findUniqueOrThrow({
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        const user = await ctx.prisma.user.findUnique({
           ...query,
           where: { id: ctx.userId },
         });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        return user;
       },
     }),
 

@@ -302,5 +302,63 @@ builder.mutationType({
         });
       },
     }),
+
+    updateProfile: t.prismaField({
+      type: 'User',
+      args: {
+        name: t.arg.string(),
+        avatar: t.arg.string(),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        return ctx.prisma.user.update({
+          ...query,
+          where: { id: ctx.userId },
+          data: {
+            name: args.name || undefined,
+            avatar: args.avatar || undefined,
+          },
+        });
+      },
+    }),
+
+    updatePassword: t.prismaField({
+      type: 'User',
+      args: {
+        currentPassword: t.arg.string({ required: true }),
+        newPassword: t.arg.string({ required: true }),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: ctx.userId },
+        });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const isValid = await verifyPassword(args.currentPassword, user.password);
+        if (!isValid) {
+          throw new Error('Current password is incorrect');
+        }
+
+        const hashedPassword = await hashPassword(args.newPassword);
+
+        return ctx.prisma.user.update({
+          ...query,
+          where: { id: ctx.userId },
+          data: {
+            password: hashedPassword,
+          },
+        });
+      },
+    }),
   }),
 }); 
