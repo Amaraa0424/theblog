@@ -1,5 +1,5 @@
 import { verify, sign } from 'jsonwebtoken';
-import { hash, compare } from 'bcryptjs';
+import { hash } from 'bcryptjs';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -10,10 +10,6 @@ const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-key';
 
 export async function hashPassword(password: string): Promise<string> {
   return hash(password, 12);
-}
-
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return compare(password, hashedPassword);
 }
 
 export function generateToken(userId: string, isAdmin: boolean): string {

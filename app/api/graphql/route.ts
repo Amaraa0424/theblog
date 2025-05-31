@@ -32,10 +32,10 @@ const { handleRequest } = createYoga({
   },
 });
 
-export async function GET(request: NextRequest) {
-  return handleRequest(request);
+export async function GET(request: NextRequest, context: any) {
+  return handleRequest(request, context);
 }
 
-export async function POST(request: NextRequest) {
-  return handleRequest(request);
+export async function POST(request: NextRequest, context: any) {
+  return handleRequest(request, context);
 } 
