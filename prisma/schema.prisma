@@ -23,6 +23,7 @@ model User {
   id                String      @id @default(uuid())
   email             String      @unique
   name              String?
+  avatar            String?
   password          String
   role              Role        @default(USER)
   posts             Post[]
@@ -46,6 +47,8 @@ model Post {
   published     Boolean   @default(false)
   author        User      @relation(fields: [authorId], references: [id])
   authorId      String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  categoryId    String
   comments      Comment[]
   views         View[]
   tags          Tag[]
@@ -133,6 +136,15 @@ model Like {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+}
+
+model Category {
+  id            String    @id @default(uuid())
+  name          String    @unique
+  description   String?
+  posts         Post[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 enum Role {

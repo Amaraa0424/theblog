@@ -1,6 +1,6 @@
 'use client';
 
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,6 +12,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const CREATE_POST_MUTATION = gql`
   mutation CreatePost(
@@ -20,6 +30,7 @@ const CREATE_POST_MUTATION = gql`
     $content: String!
     $image: String
     $published: Boolean
+    $categoryId: String!
   ) {
     createPost(
       title: $title
@@ -27,8 +38,38 @@ const CREATE_POST_MUTATION = gql`
       content: $content
       image: $image
       published: $published
+      categoryId: $categoryId
     ) {
       id
+      title
+      subtitle
+      content
+      image
+      published
+      createdAt
+      author {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+      likes {
+        id
+        user {
+          id
+        }
+      }
+    }
+  }
+`;
+
+const GET_CATEGORIES = gql`
+  query GetCategories {
+    categories {
+      id
+      name
     }
   }
 `;
@@ -38,7 +79,82 @@ export default function NewPost() {
   const { data: session, status } = useSession();
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
-  const [createPost, { loading }] = useMutation(CREATE_POST_MUTATION);
+  const [isNoImageDialogOpen, setIsNoImageDialogOpen] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<any>(null);
+  
+  const { data: categoriesData } = useQuery(GET_CATEGORIES);
+  const [createPost, { loading }] = useMutation(CREATE_POST_MUTATION, {
+    update(cache, { data: { createPost } }) {
+      // Update the userPosts query
+      cache.modify({
+        fields: {
+          userPosts(existingPosts = []) {
+            const newPostRef = cache.writeFragment({
+              data: createPost,
+              fragment: gql`
+                fragment NewPost on Post {
+                  id
+                  title
+                  subtitle
+                  content
+                  image
+                  published
+                  createdAt
+                  author {
+                    id
+                    name
+                  }
+                  likes {
+                    id
+                    user {
+                      id
+                    }
+                  }
+                }
+              `
+            });
+            return [newPostRef, ...existingPosts];
+          },
+          posts(existingPosts = []) {
+            if (!createPost.published) return existingPosts;
+            const newPostRef = cache.writeFragment({
+              data: createPost,
+              fragment: gql`
+                fragment NewPublicPost on Post {
+                  id
+                  title
+                  subtitle
+                  content
+                  image
+                  published
+                  createdAt
+                  author {
+                    id
+                    name
+                  }
+                  likes {
+                    id
+                    user {
+                      id
+                    }
+                  }
+                }
+              `
+            });
+            return [newPostRef, ...existingPosts];
+          }
+        }
+      });
+    },
+    onCompleted: () => {
+      toast.success('Post created successfully');
+      router.push('/dashboard');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create post');
+    },
+  });
+
   const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
   useEffect(() => {
@@ -47,35 +163,30 @@ export default function NewPost() {
     }
   }, [status, router]);
 
-  const onSubmit = async (formData: any) => {
+  const handleCreatePost = async (formData: any) => {
     try {
-      if (status === 'unauthenticated') {
-        toast.error('You must be logged in to create a post');
-        router.push('/login');
-        return;
-      }
-
-      if (!image && !confirm('Do you want to create the post without an image?')) {
-        return;
-      }
-
-      const result = await createPost({
+      await createPost({
         variables: {
           title: formData.title,
           subtitle: formData.subtitle,
           content: content,
           image: image || null,
           published: Boolean(formData.published),
+          categoryId: formData.categoryId,
         },
       });
-
-      if (result.data?.createPost) {
-        toast.success('Post created successfully');
-        router.push('/dashboard');
-      }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create post');
+      console.error('Error creating post:', error);
     }
+  };
+
+  const onSubmit = (formData: any) => {
+    if (!image) {
+      setPendingFormData(formData);
+      setIsNoImageDialogOpen(true);
+      return;
+    }
+    handleCreatePost(formData);
   };
 
   if (status === 'loading') {
@@ -89,7 +200,7 @@ export default function NewPost() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Featured Image (optional)</Label>
+            <Label>Featured Image</Label>
             <ImageUpload
               value={image}
               onChange={setImage}
@@ -117,6 +228,25 @@ export default function NewPost() {
               {...register('subtitle')}
               placeholder="Enter a subtitle (optional)"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">Category</Label>
+            <select
+              id="categoryId"
+              {...register('categoryId', { required: 'Category is required' })}
+              className="w-full p-2 border rounded bg-background"
+            >
+              <option value="">Select a category</option>
+              {categoriesData?.categories.map((category: { id: string, name: string }) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {errors.categoryId && (
+              <p className="text-red-500 text-sm">{errors.categoryId.message as string}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -156,6 +286,31 @@ export default function NewPost() {
           </Button>
         </div>
       </form>
+
+      <AlertDialog open={isNoImageDialogOpen} onOpenChange={setIsNoImageDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No Image Selected</AlertDialogTitle>
+            <AlertDialogDescription>
+              You haven't selected a featured image for your post. Would you like to continue without an image?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setIsNoImageDialogOpen(false);
+                if (pendingFormData) {
+                  handleCreatePost(pendingFormData);
+                  setPendingFormData(null);
+                }
+              }}
+            >
+              Continue Without Image
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

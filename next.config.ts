@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.toursmongolia.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
     ],
   },
 };

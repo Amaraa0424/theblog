@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -13,8 +13,9 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
+import { LogOut } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -23,8 +24,8 @@ export function Navbar() {
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    toast.success('Logged out successfully');
-    router.push('/');
+    toast.success("Logged out successfully");
+    router.push("/");
   };
 
   return (
@@ -33,18 +34,27 @@ export function Navbar() {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink
+                asChild
+                className={navigationMenuTriggerStyle()}
+              >
                 <Link href="/">Home</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink
+                asChild
+                className={navigationMenuTriggerStyle()}
+              >
                 <Link href="/posts">Posts</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             {session && (
               <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                <NavigationMenuLink
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                >
                   <Link href="/dashboard">Dashboard</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -52,12 +62,17 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
         <div className="ml-auto flex items-center space-x-4">
-          {status === 'loading' ? (
+          {status === "loading" ? (
             <div className="h-9 w-20 animate-pulse rounded bg-muted" />
           ) : session ? (
-            <Button variant="ghost" onClick={handleLogout}>
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {session.user?.name}
+              </span>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           ) : (
             <>
               <Link href="/login">
@@ -72,4 +87,4 @@ export function Navbar() {
       </div>
     </nav>
   );
-} 
+}

@@ -68,6 +68,7 @@ builder.mutationType({
         image: t.arg.string(),
         published: t.arg.boolean(),
         tagIds: t.arg.stringList(),
+        categoryId: t.arg.string({ required: true }),
       },
       resolve: async (query, root, args, ctx) => {
         if (!ctx.userId) {
@@ -78,11 +79,12 @@ builder.mutationType({
           ...query,
           data: {
             title: args.title,
-            subtitle: args.subtitle,
+            subtitle: args.subtitle || null,
             content: args.content,
-            image: args.image,
-            published: args.published ?? false,
+            image: args.image || null,
+            published: args.published || false,
             authorId: ctx.userId,
+            categoryId: args.categoryId,
             tags: args.tagIds ? {
               connect: args.tagIds.map(id => ({ id })),
             } : undefined,
@@ -101,6 +103,7 @@ builder.mutationType({
         image: t.arg.string(),
         published: t.arg.boolean(),
         tagIds: t.arg.stringList(),
+        categoryId: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
         if (!ctx.userId) {
@@ -119,11 +122,12 @@ builder.mutationType({
           ...query,
           where: { id: args.id },
           data: {
-            title: args.title,
-            subtitle: args.subtitle,
-            content: args.content,
-            image: args.image,
-            published: args.published,
+            title: args.title || undefined,
+            subtitle: args.subtitle || undefined,
+            content: args.content || undefined,
+            image: args.image || undefined,
+            published: args.published || undefined,
+            categoryId: args.categoryId || undefined,
             tags: args.tagIds ? {
               set: args.tagIds.map(id => ({ id })),
             } : undefined,

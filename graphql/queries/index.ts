@@ -15,18 +15,30 @@ builder.queryType({
       },
     }),
 
+    categories: t.prismaField({
+      type: ['Category'],
+      resolve: async (query, root, args, ctx) => {
+        return ctx.prisma.category.findMany({
+          ...query,
+          orderBy: { name: 'asc' },
+        });
+      },
+    }),
+
     posts: t.prismaField({
       type: ['Post'],
       args: {
         take: t.arg.int(),
         skip: t.arg.int(),
         published: t.arg.boolean(),
+        categoryId: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
         return ctx.prisma.post.findMany({
           ...query,
           where: {
             published: args.published ?? true,
+            categoryId: args.categoryId,
           },
           take: args.take ?? 10,
           skip: args.skip ?? 0,
@@ -56,6 +68,9 @@ builder.queryType({
 
     userPosts: t.prismaField({
       type: ['Post'],
+      args: {
+        categoryId: t.arg.string(),
+      },
       resolve: async (query, root, args, ctx) => {
         if (!ctx.userId) {
           throw new Error('Not authenticated');
@@ -63,7 +78,10 @@ builder.queryType({
 
         return ctx.prisma.post.findMany({
           ...query,
-          where: { authorId: ctx.userId },
+          where: { 
+            authorId: ctx.userId,
+            categoryId: args.categoryId,
+          },
           orderBy: { createdAt: 'desc' },
         });
       },
@@ -71,10 +89,20 @@ builder.queryType({
 
     publishedPosts: t.prismaField({
       type: ['Post'],
+      args: {
+        take: t.arg.int(),
+        skip: t.arg.int(),
+        categoryId: t.arg.string(),
+      },
       resolve: async (query, root, args, ctx) => {
         return ctx.prisma.post.findMany({
           ...query,
-          where: { published: true },
+          where: { 
+            published: true,
+            categoryId: args.categoryId,
+          },
+          take: args.take ?? undefined,
+          skip: args.skip ?? 0,
           orderBy: { createdAt: 'desc' },
         });
       },

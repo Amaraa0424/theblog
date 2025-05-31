@@ -9,6 +9,7 @@ builder.prismaObject('Post', {
     image: t.exposeString('image', { nullable: true }),
     published: t.exposeBoolean('published'),
     author: t.relation('author'),
+    category: t.relation('category'),
     comments: t.relation('comments'),
     views: t.relation('views'),
     tags: t.relation('tags'),
