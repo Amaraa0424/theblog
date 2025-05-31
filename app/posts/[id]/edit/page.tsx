@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CategoryCombobox } from "@/components/CategoryCombobox";
 
 const GET_POST = gql`
   query GetPost($id: String!) {
@@ -22,6 +23,10 @@ const GET_POST = gql`
       content
       image
       published
+      category {
+        id
+        name
+      }
       author {
         id
       }
@@ -37,6 +42,7 @@ const UPDATE_POST_MUTATION = gql`
     $content: String!
     $image: String
     $published: Boolean
+    $categoryId: String!
   ) {
     updatePost(
       id: $id
@@ -45,8 +51,13 @@ const UPDATE_POST_MUTATION = gql`
       content: $content
       image: $image
       published: $published
+      categoryId: $categoryId
     ) {
       id
+      category {
+        id
+        name
+      }
     }
   }
 `;
@@ -63,7 +74,7 @@ export default function EditPost() {
   });
   
   const [updatePost, { loading: mutationLoading }] = useMutation(UPDATE_POST_MUTATION);
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -83,6 +94,7 @@ export default function EditPost() {
       setValue('title', data.post.title);
       setValue('subtitle', data.post.subtitle);
       setValue('published', data.post.published);
+      setValue('categoryId', data.post.category.id);
       setContent(data.post.content);
       setImage(data.post.image || '');
     }
@@ -98,6 +110,7 @@ export default function EditPost() {
           content: content,
           image: image || null,
           published: Boolean(formData.published),
+          categoryId: formData.categoryId,
         },
       });
 
@@ -136,11 +149,11 @@ export default function EditPost() {
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              {...register('title', { required: true })}
+              {...register('title', { required: 'Title is required' })}
               className={errors.title ? 'border-red-500' : ''}
             />
             {errors.title && (
-              <p className="text-red-500 text-sm">Title is required</p>
+              <p className="text-red-500 text-sm">{errors.title.message as string}</p>
             )}
           </div>
 
@@ -150,6 +163,17 @@ export default function EditPost() {
               id="subtitle"
               {...register('subtitle')}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">Category</Label>
+            <CategoryCombobox
+              value={watch('categoryId')}
+              onChange={(value) => setValue('categoryId', value)}
+            />
+            {errors.categoryId && (
+              <p className="text-red-500 text-sm">{errors.categoryId.message as string}</p>
+            )}
           </div>
 
           <div className="space-y-2">

@@ -272,5 +272,35 @@ builder.mutationType({
         });
       },
     }),
+
+    createCategory: t.prismaField({
+      type: 'Category',
+      args: {
+        name: t.arg.string({ required: true }),
+        description: t.arg.string(),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        // Check if a category with the same name already exists
+        const existingCategory = await ctx.prisma.category.findFirst({
+          where: { name: args.name },
+        });
+
+        if (existingCategory) {
+          throw new Error('A category with this name already exists');
+        }
+
+        return ctx.prisma.category.create({
+          ...query,
+          data: {
+            name: args.name,
+            description: args.description || null,
+          },
+        });
+      },
+    }),
   }),
 }); 

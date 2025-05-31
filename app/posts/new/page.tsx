@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CategoryCombobox } from "@/components/CategoryCombobox";
 
 const CREATE_POST_MUTATION = gql`
   mutation CreatePost(
@@ -155,7 +156,7 @@ export default function NewPost() {
     },
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -232,18 +233,10 @@ export default function NewPost() {
 
           <div className="space-y-2">
             <Label htmlFor="categoryId">Category</Label>
-            <select
-              id="categoryId"
-              {...register('categoryId', { required: 'Category is required' })}
-              className="w-full p-2 border rounded bg-background"
-            >
-              <option value="">Select a category</option>
-              {categoriesData?.categories.map((category: { id: string, name: string }) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <CategoryCombobox
+              value={watch('categoryId')}
+              onChange={(value) => setValue('categoryId', value)}
+            />
             {errors.categoryId && (
               <p className="text-red-500 text-sm">{errors.categoryId.message as string}</p>
             )}

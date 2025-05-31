@@ -28,7 +28,7 @@ export default function RootLayout({
             <footer className="border-t py-6 md:py-0 container mx-auto">
               <div className="container flex h-14 items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Built with Next.js, GraphQL, and shadcn/ui
+                  Amaraa doesn't trust social media
                 </p>
                 <p className="text-sm text-muted-foreground">
                   © {new Date().getFullYear()} TheBlog. All rights reserved.
