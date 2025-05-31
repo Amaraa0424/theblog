@@ -1,21 +1,27 @@
 'use client';
 
 import { gql, useQuery } from '@apollo/client';
-import Link from 'next/link';
 import { useState } from 'react';
+import { PostCard } from '@/components/PostCard';
 
 const GET_POSTS = gql`
   query GetPosts($skip: Int, $take: Int) {
     posts(skip: $skip, take: $take) {
       id
       title
+      subtitle
       content
+      image
       createdAt
-      author {
-        name
-      }
-      comments {
+      likes {
         id
+        user {
+          id
+        }
+      }
+      author {
+        id
+        name
       }
     }
   }
@@ -31,39 +37,23 @@ export default function Posts() {
   if (error) return <div className="alert alert-error">{error.message}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-8">Latest Posts</h1>
 
-      <div className="space-y-6">
-        {data?.posts.map((post: any) => (
-          <div key={post.id} className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">{post.title}</h2>
-              <p className="text-gray-600">
-                {post.content.length > 200
-                  ? `${post.content.substring(0, 200)}...`
-                  : post.content}
-              </p>
-              <div className="card-actions justify-between items-center mt-4">
-                <div className="text-sm text-gray-500">
-                  By {post.author.name || 'Anonymous'} •{' '}
-                  {new Date(post.createdAt).toLocaleDateString()} •{' '}
-                  {post.comments.length} comments
-                </div>
-                <Link href={`/posts/${post.id}`} className="btn btn-primary btn-sm">
-                  Read More
-                </Link>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {data?.posts.length === 0 && (
-          <div className="text-center py-8">
-            <h3 className="text-xl font-semibold">No posts found</h3>
-          </div>
-        )}
-      </div>
+      {data?.posts.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-muted-foreground">No posts yet</h3>
+          <p className="mt-2 text-muted-foreground">
+            Check back later for new content.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data?.posts.map((post: any) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
 
       <div className="flex justify-center mt-8 space-x-2">
         <button

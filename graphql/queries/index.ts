@@ -41,13 +41,13 @@ builder.queryType({
         id: t.arg.string({ required: true }),
       },
       resolve: async (query, root, args, ctx) => {
-        const post = await ctx.prisma.post.findUniqueOrThrow({
+        const post = await ctx.prisma.post.findUnique({
           ...query,
           where: { id: args.id },
         });
 
-        if (!post.published && post.authorId !== ctx.userId) {
-          throw new Error('Not authorized');
+        if (!post) {
+          throw new Error('Post not found');
         }
 
         return post;
@@ -64,6 +64,17 @@ builder.queryType({
         return ctx.prisma.post.findMany({
           ...query,
           where: { authorId: ctx.userId },
+          orderBy: { createdAt: 'desc' },
+        });
+      },
+    }),
+
+    publishedPosts: t.prismaField({
+      type: ['Post'],
+      resolve: async (query, root, args, ctx) => {
+        return ctx.prisma.post.findMany({
+          ...query,
+          where: { published: true },
           orderBy: { createdAt: 'desc' },
         });
       },

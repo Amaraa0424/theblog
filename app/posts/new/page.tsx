@@ -4,12 +4,30 @@ import { gql, useMutation } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { ImageUpload } from '@/components/ImageUpload';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const CREATE_POST_MUTATION = gql`
-  mutation CreatePost($title: String!, $content: String!, $published: Boolean) {
-    createPost(title: $title, content: $content, published: $published) {
+  mutation CreatePost(
+    $title: String!
+    $subtitle: String
+    $content: String!
+    $image: String
+    $published: Boolean
+  ) {
+    createPost(
+      title: $title
+      subtitle: $subtitle
+      content: $content
+      image: $image
+      published: $published
+    ) {
       id
     }
   }
@@ -17,23 +35,37 @@ const CREATE_POST_MUTATION = gql`
 
 export default function NewPost() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [content, setContent] = useState('');
+  const [image, setImage] = useState('');
   const [createPost, { loading }] = useMutation(CREATE_POST_MUTATION);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
   useEffect(() => {
-    if (!localStorage.getItem('token')) {
+    if (status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [router]);
+  }, [status, router]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (formData: any) => {
     try {
+      if (status === 'unauthenticated') {
+        toast.error('You must be logged in to create a post');
+        router.push('/login');
+        return;
+      }
+
+      if (!image && !confirm('Do you want to create the post without an image?')) {
+        return;
+      }
+
       const result = await createPost({
         variables: {
-          title: data.title,
+          title: formData.title,
+          subtitle: formData.subtitle,
           content: content,
-          published: data.published,
+          image: image || null,
+          published: Boolean(formData.published),
         },
       });
 
@@ -41,73 +73,87 @@ export default function NewPost() {
         toast.success('Post created successfully');
         router.push('/dashboard');
       }
-    } catch (err) {
-      console.error('Error creating post:', err);
-      toast.error('Failed to create post');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create post');
     }
   };
 
+  if (status === 'loading') {
+    return <div className="loading loading-spinner loading-lg"></div>;
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Create New Post</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Title</span>
-          </label>
-          <input
-            type="text"
-            {...register('title', { required: 'Title is required' })}
-            className="input input-bordered w-full"
-            placeholder="Enter your post title"
-          />
-          {errors.title && (
-            <label className="label">
-              <span className="label-text-alt text-error">
-                {errors.title.message as string}
-              </span>
-            </label>
-          )}
-        </div>
-
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Content</span>
-          </label>
-          <RichTextEditor
-            content={content}
-            onChange={setContent}
-            placeholder="Write your post content here..."
-          />
-        </div>
-
-        <div className="form-control">
-          <label className="label cursor-pointer">
-            <span className="label-text">Publish immediately</span>
-            <input
-              type="checkbox"
-              {...register('published')}
-              className="checkbox"
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Featured Image (optional)</Label>
+            <ImageUpload
+              value={image}
+              onChange={setImage}
             />
-          </label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              {...register('title', { required: 'Title is required' })}
+              placeholder="Enter your post title"
+            />
+            {errors.title && (
+              <p className="text-sm text-destructive">
+                {errors.title.message as string}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle (optional)</Label>
+            <Input
+              id="subtitle"
+              {...register('subtitle')}
+              placeholder="Enter a subtitle (optional)"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Content</Label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Write your post content here..."
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="published" 
+              {...register('published')}
+              onCheckedChange={(checked) => {
+                setValue('published', checked);
+              }}
+            />
+            <Label htmlFor="published">Publish immediately</Label>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
+        <div className="flex justify-end gap-4">
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.back()}
-            className="btn btn-outline"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className={`btn btn-primary ${loading ? 'loading' : ''}`}
             disabled={loading}
           >
-            Create Post
-          </button>
+            {loading ? 'Creating...' : 'Create Post'}
+          </Button>
         </div>
       </form>
     </div>

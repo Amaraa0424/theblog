@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,21 +19,16 @@ import { cn } from '@/lib/utils';
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'));
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
     toast.success('Logged out successfully');
     router.push('/');
   };
 
   return (
-    <nav className="border-b bg-background">
+    <nav className="border-b bg-background container mx-auto">
       <div className="container flex h-16 items-center px-4">
         <NavigationMenu>
           <NavigationMenuList>
@@ -47,7 +42,7 @@ export function Navbar() {
                 <Link href="/posts">Posts</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            {isLoggedIn && (
+            {session && (
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link href="/dashboard">Dashboard</Link>
@@ -57,7 +52,9 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
         <div className="ml-auto flex items-center space-x-4">
-          {isLoggedIn ? (
+          {status === 'loading' ? (
+            <div className="h-9 w-20 animate-pulse rounded bg-muted" />
+          ) : session ? (
             <Button variant="ghost" onClick={handleLogout}>
               Logout
             </Button>

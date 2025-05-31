@@ -25,6 +25,7 @@ import {
   Undo,
   Redo,
 } from '@mui/icons-material';
+import { useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -51,11 +52,18 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
         types: ['heading', 'paragraph'],
       }),
     ],
-    content,
+    content: content || '',
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
   });
+
+  // Update editor content when content prop changes
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '');
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;

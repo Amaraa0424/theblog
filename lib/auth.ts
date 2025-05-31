@@ -1,7 +1,7 @@
 import { verify, sign } from 'jsonwebtoken';
 import { hash, compare } from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-key';
 
 export async function hashPassword(password: string): Promise<string> {
   return hash(password, 12);

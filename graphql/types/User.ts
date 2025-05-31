@@ -10,6 +10,7 @@ builder.prismaObject('User', {
     comments: t.relation('comments'),
     shares: t.relation('shares'),
     sharedWithMe: t.relation('sharedWithMe'),
+    likes: t.relation('likes'),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
     updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
   }),

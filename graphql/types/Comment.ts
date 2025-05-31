@@ -5,7 +5,8 @@ builder.prismaObject('Comment', {
     id: t.exposeID('id'),
     content: t.exposeString('content'),
     post: t.relation('post'),
-    author: t.relation('author'),
+    author: t.relation('author', { nullable: true }),
+    guestName: t.exposeString('guestName', { nullable: true }),
     createdAt: t.expose('createdAt', {
       type: 'DateTime',
     }),

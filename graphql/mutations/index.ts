@@ -63,7 +63,9 @@ builder.mutationType({
       type: 'Post',
       args: {
         title: t.arg.string({ required: true }),
+        subtitle: t.arg.string(),
         content: t.arg.string({ required: true }),
+        image: t.arg.string(),
         published: t.arg.boolean(),
         tagIds: t.arg.stringList(),
       },
@@ -76,7 +78,9 @@ builder.mutationType({
           ...query,
           data: {
             title: args.title,
+            subtitle: args.subtitle,
             content: args.content,
+            image: args.image,
             published: args.published ?? false,
             authorId: ctx.userId,
             tags: args.tagIds ? {
@@ -92,7 +96,9 @@ builder.mutationType({
       args: {
         id: t.arg.string({ required: true }),
         title: t.arg.string(),
+        subtitle: t.arg.string(),
         content: t.arg.string(),
+        image: t.arg.string(),
         published: t.arg.boolean(),
         tagIds: t.arg.stringList(),
       },
@@ -114,7 +120,9 @@ builder.mutationType({
           where: { id: args.id },
           data: {
             title: args.title,
+            subtitle: args.subtitle,
             content: args.content,
+            image: args.image,
             published: args.published,
             tags: args.tagIds ? {
               set: args.tagIds.map(id => ({ id })),
@@ -154,10 +162,24 @@ builder.mutationType({
       args: {
         postId: t.arg.string({ required: true }),
         content: t.arg.string({ required: true }),
+        guestName: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
-        if (!ctx.userId) {
-          throw new Error('Not authenticated');
+        // If user is authenticated, create comment with author
+        if (ctx.userId) {
+          return ctx.prisma.comment.create({
+            ...query,
+            data: {
+              content: args.content,
+              postId: args.postId,
+              authorId: ctx.userId,
+            },
+          });
+        }
+        
+        // If no user is authenticated, require guestName
+        if (!args.guestName) {
+          throw new Error('Guest name is required for unauthenticated comments');
         }
 
         return ctx.prisma.comment.create({
@@ -165,8 +187,54 @@ builder.mutationType({
           data: {
             content: args.content,
             postId: args.postId,
-            authorId: ctx.userId,
+            guestName: args.guestName,
           },
+        });
+      },
+    }),
+
+    likePost: t.prismaField({
+      type: 'Like',
+      args: {
+        postId: t.arg.string({ required: true }),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        return ctx.prisma.like.create({
+          ...query,
+          data: {
+            postId: args.postId,
+            userId: ctx.userId,
+          },
+        });
+      },
+    }),
+
+    unlikePost: t.prismaField({
+      type: 'Post',
+      args: {
+        postId: t.arg.string({ required: true }),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        await ctx.prisma.like.delete({
+          where: {
+            postId_userId: {
+              postId: args.postId,
+              userId: ctx.userId,
+            },
+          },
+        });
+
+        return ctx.prisma.post.findUnique({
+          ...query,
+          where: { id: args.postId },
         });
       },
     }),

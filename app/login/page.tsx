@@ -1,9 +1,9 @@
 'use client';
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { signIn } from "next-auth/react";
 import { toast, Toaster } from 'sonner';
 import { Button } from "@/components/ui/button";
 import {
@@ -17,38 +17,39 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password)
-  }
-`;
-
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [login, { loading }] = useMutation(LOGIN_MUTATION);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const { data } = await login({
-        variables: {
-          email: formData.email,
-          password: formData.password,
-        },
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
       });
 
-      if (data?.login) {
-        localStorage.setItem('token', data.login);
-        toast.success("Logged in successfully");
-        router.push('/dashboard');
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        // Get the callback URL from the search params or use a default
+        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+        router.push(callbackUrl);
+        toast.success('Logged in successfully');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An error occurred during login");
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+    } finally {
+      setLoading(false);
     }
   };
 

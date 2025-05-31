@@ -3,35 +3,52 @@
 import { gql, useQuery } from '@apollo/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { PostCard } from '@/components/PostCard';
 
-const GET_USER_POSTS = gql`
-  query GetUserPosts {
+const USER_POSTS = gql`
+  query UserPosts {
     userPosts {
       id
       title
+      subtitle
       content
+      image
       published
       createdAt
+      likes {
+        id
+        user {
+          id
+        }
+      }
+      author {
+        id
+        name
+      }
     }
   }
 `;
 
 export default function Dashboard() {
   const router = useRouter();
-  const { data, loading, error } = useQuery(GET_USER_POSTS);
+  const { data: session, status } = useSession();
+  const { data, loading, error } = useQuery(USER_POSTS);
 
-  useEffect(() => {
-    if (!localStorage.getItem('token')) {
-      router.push('/login');
-    }
-  }, [router]);
+  // Redirect to login if not authenticated
+  if (status === 'unauthenticated') {
+    router.push('/login');
+    return null;
+  }
 
-  if (loading) return <div className="loading loading-spinner loading-lg"></div>;
+  if (loading || status === 'loading') {
+    return <div className="loading loading-spinner loading-lg"></div>;
+  }
+  
   if (error) return <div className="alert alert-error">{error.message}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Posts</h1>
         <Link href="/posts/new" className="btn btn-primary">
@@ -39,54 +56,20 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="space-y-6">
-        {data?.userPosts.map((post: any) => (
-          <div key={post.id} className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-start">
-                <h2 className="card-title">{post.title}</h2>
-                <div className={`badge ${post.published ? 'badge-success' : 'badge-warning'}`}>
-                  {post.published ? 'Published' : 'Draft'}
-                </div>
-              </div>
-              <p className="text-gray-600">
-                {post.content.length > 200
-                  ? `${post.content.substring(0, 200)}...`
-                  : post.content}
-              </p>
-              <div className="card-actions justify-between items-center mt-4">
-                <div className="text-sm text-gray-500">
-                  Created on {new Date(post.createdAt).toLocaleDateString()}
-                </div>
-                <div className="space-x-2">
-                  <Link
-                    href={`/posts/${post.id}/edit`}
-                    className="btn btn-sm btn-outline"
-                  >
-                    Edit
-                  </Link>
-                  <Link
-                    href={`/posts/${post.id}`}
-                    className="btn btn-sm btn-primary"
-                  >
-                    View
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {data?.userPosts.length === 0 && (
-          <div className="text-center py-8">
-            <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
-            <p className="text-gray-600 mb-4">Start writing your first blog post!</p>
-            <Link href="/posts/new" className="btn btn-primary">
-              Create Your First Post
-            </Link>
-          </div>
-        )}
-      </div>
+      {data?.userPosts.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-muted-foreground">No posts yet</h3>
+          <p className="mt-2 text-muted-foreground">
+            Get started by creating a new post.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data?.userPosts.map((post: any) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
     </div>
   );
 } 

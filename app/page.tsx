@@ -1,16 +1,25 @@
 'use client';
 
 import { gql, useQuery } from '@apollo/client';
-import Link from 'next/link';
+import { PostCard } from '@/components/PostCard';
 
-const GET_LATEST_POSTS = gql`
-  query GetLatestPosts {
-    posts(take: 5) {
+const PUBLISHED_POSTS = gql`
+  query PublishedPosts {
+    publishedPosts {
       id
       title
+      subtitle
       content
+      image
       createdAt
+      likes {
+        id
+        user {
+          id
+        }
+      }
       author {
+        id
         name
       }
     }
@@ -18,51 +27,29 @@ const GET_LATEST_POSTS = gql`
 `;
 
 export default function Home() {
-  const { data, loading, error } = useQuery(GET_LATEST_POSTS);
+  const { data, loading, error } = useQuery(PUBLISHED_POSTS);
 
   if (loading) return <div className="loading loading-spinner loading-lg"></div>;
   if (error) return <div className="alert alert-error">{error.message}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="hero bg-base-200 rounded-lg p-8 mb-8">
-        <div className="hero-content text-center">
-          <div className="max-w-md">
-            <h1 className="text-5xl font-bold">Welcome to TheBlog</h1>
-            <p className="py-6">
-              Share your thoughts, connect with others, and discover amazing stories.
-            </p>
-            <Link href="/signup" className="btn btn-primary">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </div>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-4xl font-bold mb-8">Latest Posts</h1>
 
-      <h2 className="text-3xl font-bold mb-6">Latest Posts</h2>
-      <div className="space-y-6">
-        {data?.posts.map((post: any) => (
-          <div key={post.id} className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h3 className="card-title">{post.title}</h3>
-              <p className="text-gray-600">
-                {post.content.length > 200
-                  ? `${post.content.substring(0, 200)}...`
-                  : post.content}
-              </p>
-              <div className="card-actions justify-between items-center mt-4">
-                <div className="text-sm text-gray-500">
-                  By {post.author.name || 'Anonymous'} •{' '}
-                  {new Date(post.createdAt).toLocaleDateString()}
-                </div>
-                <Link href={`/posts/${post.id}`} className="btn btn-primary btn-sm">
-                  Read More
-                </Link>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      {data?.publishedPosts.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-muted-foreground">No posts yet</h3>
+          <p className="mt-2 text-muted-foreground">
+            Check back later for new content.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data?.publishedPosts.map((post: any) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
+    </main>
   );
 }

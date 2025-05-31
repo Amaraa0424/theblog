@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
-import { ApolloWrapper } from '@/components/ApolloWrapper';
+import { Providers } from '@/components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,13 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ApolloWrapper>
+        <Providers>
           <div className="relative min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 container mx-auto px-4 py-8">
               {children}
             </main>
-            <footer className="border-t py-6 md:py-0">
+            <footer className="border-t py-6 md:py-0 container mx-auto">
               <div className="container flex h-14 items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                   Built with Next.js, GraphQL, and shadcn/ui
@@ -36,7 +36,7 @@ export default function RootLayout({
               </div>
             </footer>
           </div>
-        </ApolloWrapper>
+        </Providers>
       </body>
     </html>
   );

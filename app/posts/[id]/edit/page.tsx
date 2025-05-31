@@ -4,15 +4,23 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { ImageUpload } from '@/components/ImageUpload';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GET_POST = gql`
   query GetPost($id: String!) {
     post(id: $id) {
       id
       title
+      subtitle
       content
+      image
       published
       author {
         id
@@ -25,13 +33,17 @@ const UPDATE_POST_MUTATION = gql`
   mutation UpdatePost(
     $id: String!
     $title: String!
+    $subtitle: String
     $content: String!
+    $image: String
     $published: Boolean
   ) {
     updatePost(
       id: $id
       title: $title
+      subtitle: $subtitle
       content: $content
+      image: $image
       published: $published
     ) {
       id
@@ -42,28 +54,39 @@ const UPDATE_POST_MUTATION = gql`
 export default function EditPost() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [content, setContent] = useState('');
+  const [image, setImage] = useState('');
+  
   const { data, loading: queryLoading, error: queryError } = useQuery(GET_POST, {
     variables: { id: params.id },
   });
+  
   const [updatePost, { loading: mutationLoading }] = useMutation(UPDATE_POST_MUTATION);
   const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
   useEffect(() => {
-    if (!localStorage.getItem('token')) {
+    // Redirect if not authenticated
+    if (status === 'unauthenticated') {
       router.push('/login');
+      return;
+    }
+
+    // Redirect if not the author
+    if (data?.post && session?.user?.id && data.post.author.id !== session.user.id) {
+      toast.error('You are not authorized to edit this post');
+      router.push('/dashboard');
       return;
     }
 
     if (data?.post) {
       setValue('title', data.post.title);
+      setValue('subtitle', data.post.subtitle);
       setValue('published', data.post.published);
       setContent(data.post.content);
+      setImage(data.post.image || '');
     }
-  }, [data, router, setValue]);
-
-  if (queryLoading) return <div className="loading loading-spinner loading-lg"></div>;
-  if (queryError) return <div className="alert alert-error">{queryError.message}</div>;
+  }, [data, session, status, router, setValue]);
 
   const onSubmit = async (formData: any) => {
     try {
@@ -71,8 +94,10 @@ export default function EditPost() {
         variables: {
           id: params.id,
           title: formData.title,
+          subtitle: formData.subtitle,
           content: content,
-          published: formData.published,
+          image: image || null,
+          published: Boolean(formData.published),
         },
       });
 
@@ -80,72 +105,85 @@ export default function EditPost() {
         toast.success('Post updated successfully');
         router.push('/dashboard');
       }
-    } catch (err) {
-      console.error('Error updating post:', err);
-      toast.error('Failed to update post');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update post');
     }
   };
 
+  if (status === 'loading' || queryLoading) {
+    return <div className="loading loading-spinner loading-lg"></div>;
+  }
+
+  if (queryError) {
+    return <div className="alert alert-error">{queryError.message}</div>;
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Edit Post</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Title</span>
-          </label>
-          <input
-            type="text"
-            {...register('title', { required: 'Title is required' })}
-            className="input input-bordered w-full"
-          />
-          {errors.title && (
-            <label className="label">
-              <span className="label-text-alt text-error">
-                {errors.title.message as string}
-              </span>
-            </label>
-          )}
-        </div>
-
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Content</span>
-          </label>
-          <RichTextEditor
-            content={content}
-            onChange={setContent}
-            placeholder="Write your post content here..."
-          />
-        </div>
-
-        <div className="form-control">
-          <label className="label cursor-pointer">
-            <span className="label-text">Published</span>
-            <input
-              type="checkbox"
-              {...register('published')}
-              className="checkbox"
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              {...register('title', { required: true })}
+              className={errors.title ? 'border-red-500' : ''}
             />
-          </label>
+            {errors.title && (
+              <p className="text-red-500 text-sm">Title is required</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle (optional)</Label>
+            <Input
+              id="subtitle"
+              {...register('subtitle')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Content</Label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Write your post content here..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Featured Image (optional)</Label>
+            <ImageUpload
+              value={image}
+              onChange={setImage}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="published"
+              {...register('published')}
+            />
+            <Label htmlFor="published">Published</Label>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
+        <div className="flex justify-end gap-4">
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.back()}
-            className="btn btn-outline"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className={`btn btn-primary ${mutationLoading ? 'loading' : ''}`}
             disabled={mutationLoading}
           >
-            Update Post
-          </button>
+            {mutationLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
       </form>
     </div>
