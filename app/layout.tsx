@@ -9,8 +9,6 @@ import { Navbar } from '@/components/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
-const ogImage = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png';
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://theblog-indol.vercel.app'),
   title: {
@@ -26,21 +24,12 @@ export const metadata: Metadata = {
     url: 'https://theblog-indol.vercel.app',
     siteName: 'TheBlog',
     title: 'TheBlog',
-    description: 'A modern blog platform for sharing your thoughts and ideas',
-    images: [
-      {
-        url: ogImage,
-        width: 1200,
-        height: 630,
-        alt: 'TheBlog'
-      }
-    ]
+    description: 'A modern blog platform for sharing your thoughts and ideas'
   },
   twitter: {
     card: 'summary_large_image',
     title: 'TheBlog',
     description: 'A modern blog platform for sharing your thoughts and ideas',
-    images: [ogImage],
     creator: '@amaraa0424'
   },
   robots: {
