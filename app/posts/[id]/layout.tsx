@@ -25,39 +25,54 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { data } = await getClient().query({
-    query: GET_POST_METADATA,
-    variables: { id: params.id }
-  });
+  try {
+    const { data } = await getClient().query({
+      query: GET_POST_METADATA,
+      variables: { id: await params.id }
+    });
 
-  const post = data.post;
-  const description = post.subtitle || post.content.replace(/<[^>]*>/g, '').slice(0, 200) + '...';
-
-  return {
-    title: post.title,
-    description: description,
-    openGraph: {
-      title: post.title,
-      description: description,
-      type: 'article',
-      authors: [post.author.name],
-      publishedTime: post.createdAt,
-      images: post.image ? [
-        {
-          url: post.image,
-          width: 1200,
-          height: 630,
-          alt: post.title
-        }
-      ] : undefined
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: description,
-      images: post.image ? [post.image] : undefined
+    if (!data?.post) {
+      return {
+        title: 'Post Not Found',
+        description: 'The requested post could not be found.'
+      };
     }
-  };
+
+    const post = data.post;
+    const description = post.subtitle || post.content.replace(/<[^>]*>/g, '').slice(0, 200) + '...';
+
+    return {
+      title: post.title,
+      description: description,
+      openGraph: {
+        title: post.title,
+        description: description,
+        type: 'article',
+        authors: [post.author.name],
+        publishedTime: post.createdAt,
+        images: post.image ? [
+          {
+            url: post.image,
+            width: 1200,
+            height: 630,
+            alt: post.title
+          }
+        ] : undefined
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: post.title,
+        description: description,
+        images: post.image ? [post.image] : undefined
+      }
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Error',
+      description: 'An error occurred while loading the post.'
+    };
+  }
 }
 
 export default function PostLayout({ children }: Props) {
