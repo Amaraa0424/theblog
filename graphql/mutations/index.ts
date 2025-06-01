@@ -126,7 +126,7 @@ builder.mutationType({
             subtitle: args.subtitle || undefined,
             content: args.content || undefined,
             image: args.image || undefined,
-            published: args.published || undefined,
+            published: args.published === undefined ? undefined : args.published,
             categoryId: args.categoryId || undefined,
             tags: args.tagIds ? {
               set: args.tagIds.map(id => ({ id })),

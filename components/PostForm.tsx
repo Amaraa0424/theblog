@@ -30,6 +30,14 @@ interface PostFormProps {
   post: Post;
 }
 
+interface FormValues {
+  title: string;
+  subtitle: string;
+  published: boolean;
+  categoryId: string;
+  image: string;
+}
+
 const UPDATE_POST_MUTATION = gql`
   mutation UpdatePost(
     $id: String!
@@ -67,7 +75,7 @@ export function PostForm({ post }: PostFormProps) {
   const router = useRouter();
   const [content, setContent] = useState(post.content);
   const [updatePost, { loading: mutationLoading }] = useMutation(UPDATE_POST_MUTATION);
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormValues>({
     defaultValues: {
       title: post.title,
       subtitle: post.subtitle || '',
@@ -164,7 +172,8 @@ export function PostForm({ post }: PostFormProps) {
         <div className="flex items-center space-x-2">
           <Checkbox
             id="published"
-            {...register('published')}
+            checked={watch('published')}
+            onCheckedChange={(checked: boolean) => setValue('published', checked)}
           />
           <Label htmlFor="published">Published</Label>
         </div>
