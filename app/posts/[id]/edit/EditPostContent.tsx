@@ -8,6 +8,7 @@ interface Post {
   title: string;
   content: string;
   published: boolean;
+  image?: string;
   category: {
     id: string;
     name: string;
@@ -25,6 +26,7 @@ const GET_POST = gql`
       title
       content
       published
+      image
       category {
         id
         name

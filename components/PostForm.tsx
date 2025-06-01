@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CategoryCombobox } from '@/components/CategoryCombobox';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface Post {
   id: string;
   title: string;
   content: string;
   published: boolean;
+  image?: string;
   category: {
     id: string;
     name: string;
@@ -34,6 +36,7 @@ const UPDATE_POST_MUTATION = gql`
     $content: String!
     $published: Boolean!
     $categoryId: String!
+    $image: String
   ) {
     updatePost(
       id: $id
@@ -41,11 +44,13 @@ const UPDATE_POST_MUTATION = gql`
       content: $content
       published: $published
       categoryId: $categoryId
+      image: $image
     ) {
       id
       title
       content
       published
+      image
       category {
         id
         name
@@ -63,6 +68,7 @@ export function PostForm({ post }: PostFormProps) {
       title: post.title,
       published: post.published,
       categoryId: post.category.id,
+      image: post.image || '',
     },
   });
 
@@ -70,6 +76,7 @@ export function PostForm({ post }: PostFormProps) {
     title: string;
     published: boolean;
     categoryId: string;
+    image?: string;
   }) => {
     try {
       const result = await updatePost({
@@ -79,6 +86,7 @@ export function PostForm({ post }: PostFormProps) {
           content,
           published: Boolean(formData.published),
           categoryId: formData.categoryId,
+          image: formData.image || null,
         },
       });
 
@@ -111,6 +119,14 @@ export function PostForm({ post }: PostFormProps) {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="image">Featured Image</Label>
+          <ImageUpload
+            value={watch('image')}
+            onChange={(url) => setValue('image', url)}
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="categoryId">Category</Label>
           <CategoryCombobox
             value={watch('categoryId')}
@@ -126,7 +142,6 @@ export function PostForm({ post }: PostFormProps) {
           <RichTextEditor
             content={content}
             onChange={setContent}
-            placeholder="Write your post content here..."
           />
         </div>
 
