@@ -45,7 +45,7 @@ builder.queryType({
           ...query,
           where: {
             published: args.published ?? true,
-            categoryId: args.categoryId,
+            ...(args.categoryId ? { categoryId: args.categoryId } : {}),
           },
           take: args.take ?? 10,
           skip: args.skip ?? 0,
@@ -87,7 +87,7 @@ builder.queryType({
           ...query,
           where: { 
             authorId: ctx.userId,
-            categoryId: args.categoryId,
+            ...(args.categoryId ? { categoryId: args.categoryId } : {}),
           },
           orderBy: { createdAt: 'desc' },
         });
@@ -106,7 +106,7 @@ builder.queryType({
           ...query,
           where: { 
             published: true,
-            categoryId: args.categoryId,
+            ...(args.categoryId ? { categoryId: args.categoryId } : {}),
           },
           take: args.take ?? undefined,
           skip: args.skip ?? 0,

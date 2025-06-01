@@ -1,70 +1,25 @@
 'use client';
 
-import { gql, useMutation, useQuery } from '@apollo/client';
-import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { CategoryCombobox } from '@/components/CategoryCombobox';
 import { ImageUpload } from '@/components/ImageUpload';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { CategoryCombobox } from "@/components/CategoryCombobox";
 
-const CREATE_POST_MUTATION = gql`
-  mutation CreatePost(
-    $title: String!
-    $subtitle: String
-    $content: String!
-    $image: String
-    $published: Boolean
-    $categoryId: String!
-  ) {
-    createPost(
-      title: $title
-      subtitle: $subtitle
-      content: $content
-      image: $image
-      published: $published
-      categoryId: $categoryId
-    ) {
-      id
-      title
-      subtitle
-      content
-      image
-      published
-      createdAt
-      author {
-        id
-        name
-      }
-      category {
-        id
-        name
-      }
-      likes {
-        id
-        user {
-          id
-        }
-      }
-    }
-  }
-`;
+const formSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  categoryId: z.string().min(1, 'Category is required'),
+  image: z.string().min(1, 'Image is required'),
+});
 
 const GET_CATEGORIES = gql`
   query GetCategories {
@@ -75,235 +30,129 @@ const GET_CATEGORIES = gql`
   }
 `;
 
-export default function NewPost() {
+const CREATE_POST = gql`
+  mutation CreatePost($input: CreatePostInput!) {
+    createPost(input: $input) {
+      id
+      title
+      content
+      image
+      category {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export default function NewPostPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [content, setContent] = useState('');
-  const [image, setImage] = useState('');
-  const [isNoImageDialogOpen, setIsNoImageDialogOpen] = useState(false);
-  const [pendingFormData, setPendingFormData] = useState<any>(null);
-  
-  const { data: categoriesData } = useQuery(GET_CATEGORIES);
-  const [createPost, { loading }] = useMutation(CREATE_POST_MUTATION, {
-    update(cache, { data: { createPost } }) {
-      // Update the userPosts query
-      cache.modify({
-        fields: {
-          userPosts(existingPosts = []) {
-            const newPostRef = cache.writeFragment({
-              data: createPost,
-              fragment: gql`
-                fragment NewPost on Post {
-                  id
-                  title
-                  subtitle
-                  content
-                  image
-                  published
-                  createdAt
-                  author {
-                    id
-                    name
-                  }
-                  likes {
-                    id
-                    user {
-                      id
-                    }
-                  }
-                }
-              `
-            });
-            return [newPostRef, ...existingPosts];
-          },
-          posts(existingPosts = []) {
-            if (!createPost.published) return existingPosts;
-            const newPostRef = cache.writeFragment({
-              data: createPost,
-              fragment: gql`
-                fragment NewPublicPost on Post {
-                  id
-                  title
-                  subtitle
-                  content
-                  image
-                  published
-                  createdAt
-                  author {
-                    id
-                    name
-                  }
-                  likes {
-                    id
-                    user {
-                      id
-                    }
-                  }
-                }
-              `
-            });
-            return [newPostRef, ...existingPosts];
-          }
-        }
-      });
-    },
-    onCompleted: () => {
-      toast.success('Post created successfully');
-      router.push('/dashboard');
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to create post');
+  useSession({
+    required: true,
+    onUnauthenticated() {
+      router.push('/login');
     },
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
+  const { data: categories } = useQuery(GET_CATEGORIES);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
+  const [createPost, { loading }] = useMutation(CREATE_POST, {
+    onCompleted: (data) => {
+      router.push(`/posts/${data.createPost.id}`);
+      toast.success('Post created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create post');
+    },
+  });
 
-  const handleCreatePost = async (formData: any) => {
-    try {
-      await createPost({
-        variables: {
-          title: formData.title,
-          subtitle: formData.subtitle,
-          content: content,
-          image: image || null,
-          published: Boolean(formData.published),
-          categoryId: formData.categoryId,
-        },
-      });
-    } catch (error: any) {
-      console.error('Error creating post:', error);
-    }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      content: '',
+      categoryId: '',
+      image: '',
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    await createPost({
+      variables: {
+        input: values,
+      },
+    });
   };
-
-  const onSubmit = (formData: any) => {
-    if (!image) {
-      setPendingFormData(formData);
-      setIsNoImageDialogOpen(true);
-      return;
-    }
-    handleCreatePost(formData);
-  };
-
-  if (status === 'loading') {
-    return <div className="loading loading-spinner loading-lg"></div>;
-  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Create New Post</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Featured Image</Label>
-            <ImageUpload
-              value={image}
-              onChange={setImage}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              {...register('title', { required: 'Title is required' })}
-              placeholder="Enter your post title"
-            />
-            {errors.title && (
-              <p className="text-sm text-destructive">
-                {errors.title.message as string}
-              </p>
+    <div className="container max-w-4xl py-10">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Post title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="subtitle">Subtitle (optional)</Label>
-            <Input
-              id="subtitle"
-              {...register('subtitle')}
-              placeholder="Enter a subtitle (optional)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="categoryId">Category</Label>
-            <CategoryCombobox
-              value={watch('categoryId')}
-              onChange={(value) => setValue('categoryId', value)}
-            />
-            {errors.categoryId && (
-              <p className="text-red-500 text-sm">{errors.categoryId.message as string}</p>
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Content</FormLabel>
+                <FormControl>
+                  <RichTextEditor content={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
 
-          <div className="space-y-2">
-            <Label>Content</Label>
-            <RichTextEditor
-              content={content}
-              onChange={setContent}
-              placeholder="Write your post content here..."
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  <CategoryCombobox
+                    categories={categories?.categories || []}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="published" 
-              {...register('published')}
-              onCheckedChange={(checked) => {
-                setValue('published', checked);
-              }}
-            />
-            <Label htmlFor="published">Publish immediately</Label>
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image</FormLabel>
+                <FormControl>
+                  <ImageUpload value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={loading}
-          >
+          <Button type="submit" disabled={loading}>
             {loading ? 'Creating...' : 'Create Post'}
           </Button>
-        </div>
-      </form>
-
-      <AlertDialog open={isNoImageDialogOpen} onOpenChange={setIsNoImageDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>No Image Selected</AlertDialogTitle>
-            <AlertDialogDescription>
-              You haven't selected a featured image for your post. Would you like to continue without an image?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setIsNoImageDialogOpen(false);
-                if (pendingFormData) {
-                  handleCreatePost(pendingFormData);
-                  setPendingFormData(null);
-                }
-              }}
-            >
-              Continue Without Image
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </form>
+      </Form>
     </div>
   );
 } 

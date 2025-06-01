@@ -1,39 +1,27 @@
 import SchemaBuilder from '@pothos/core';
 import PrismaPlugin from '@pothos/plugin-prisma';
-import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
-import ValidationPlugin from '@pothos/plugin-validation';
-import { DateTimeResolver } from 'graphql-scalars';
+import type PrismaTypes from '@pothos/plugin-prisma/generated';
 import { prisma } from './prisma';
-import type PrismaTypes from '../app/generated/prisma/pothos';
-
-export type Context = {
-  prisma: typeof prisma;
-  userId?: string;
-  isAdmin?: boolean;
-};
+import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
+import { Context } from './types';
 
 export const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: Context;
-  Scalars: {
-    DateTime: {
-      Input: Date;
-      Output: Date;
-    };
-  };
   AuthScopes: {
     isAuthed: boolean;
     isAdmin: boolean;
   };
 }>({
-  plugins: [PrismaPlugin, ScopeAuthPlugin, ValidationPlugin],
-  prisma: {
-    client: prisma,
-  },
-  authScopes: async (context: Context) => ({
+  plugins: [ScopeAuthPlugin, PrismaPlugin],
+  authScopes: async (context) => ({
     isAuthed: !!context.userId,
     isAdmin: !!context.isAdmin,
   }),
+  scopeAuthOptions: {
+    unauthorizedError: () => new Error('Not authorized'),
+  },
+  prisma: {
+    client: prisma,
+  },
 });
-
-builder.addScalarType('DateTime', DateTimeResolver, {});

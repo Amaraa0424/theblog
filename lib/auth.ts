@@ -1,93 +1,56 @@
-import { verify } from 'jsonwebtoken';
+'use client';
+
 import { hash } from 'bcryptjs';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { type NextAuthOptions } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-import { verifyPassword, generateToken, verifyToken, generateVerificationToken, generateResetToken } from './auth-utils';
-
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-key';
-
-export async function hashPassword(password: string): Promise<string> {
-  return hash(password, 12);
-}
+import { validateCredentials } from './auth-utils';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: 'jwt',
+  },
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter your email and password');
-}
+          throw new Error('Invalid credentials');
+        }
 
-        try {
-          // Find user by email
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
-          });
-
-          if (!user) {
-            throw new Error('No user found with this email');
-}
-
-          // Verify password
-          const isValid = await verifyPassword(credentials.password, user.password);
-          if (!isValid) {
-            throw new Error('Invalid password');
-          }
-
-          // Return user object (without password)
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        } catch (error) {
-          console.error('Auth error:', error);
-          throw error;
-  }
-}
-    })
+        const user = await validateCredentials(credentials.email, credentials.password);
+        return user;
+      },
+    }),
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
   pages: {
     signIn: '/login',
-    error: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.name = user.name;
-        token.role = user.role;
-        token.accessToken = generateToken(user.id, user.role === 'ADMIN');
-}
+      }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user = {
-          id: token.id as string,
-          email: token.email as string,
-          name: token.name as string | null,
-          role: token.role as string,
-        };
-        session.token = token.accessToken as string;
+        session.user.id = token.id;
+        session.user.email = token.email;
       }
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-}; 
+};
+
+export async function hashPassword(password: string): Promise<string> {
+  return hash(password, 12);
+} 

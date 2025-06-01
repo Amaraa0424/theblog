@@ -1,16 +1,18 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { ApolloWrapper } from '@/lib/apollo-wrapper';
+import { AuthProvider } from '@/components/providers/AuthProvider';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import { Toaster } from 'sonner';
 import { Navbar } from '@/components/Navbar';
-import { AuthProvider } from '@/components/providers/AuthProvider';
-import { ApolloProvider } from '@/components/providers/ApolloProvider';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'The Blog',
+  title: 'TheBlog',
   description: 'A modern blog platform',
 };
 
@@ -29,25 +31,25 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <ApolloProvider>
-          <div className="relative min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1 container mx-auto px-4 py-8">
-              {children}
-            </main>
+            <ApolloWrapper>
+              <div className="relative min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-1 container mx-auto px-4 py-8">
+                  {children}
+                </main>
                 <footer className="border-t py-6 md:py-0">
                   <div className="container mx-auto flex h-14 items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Amaraa doesn't trust social media
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} TheBlog. All rights reserved.
-                </p>
+                    <p className="text-sm text-muted-foreground">
+                      Amaraa doesn&apos;t trust social media
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      © {new Date().getFullYear()} TheBlog. All rights reserved.
+                    </p>
+                  </div>
+                </footer>
               </div>
-            </footer>
-          </div>
-              <Toaster />
-            </ApolloProvider>
+              <Toaster richColors position="top-right" />
+            </ApolloWrapper>
           </AuthProvider>
         </ThemeProvider>
       </body>

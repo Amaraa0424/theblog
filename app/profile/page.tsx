@@ -1,16 +1,16 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/ImageUpload';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GET_USER = gql`
   query GetUser {
@@ -24,228 +24,114 @@ const GET_USER = gql`
 `;
 
 const UPDATE_PROFILE = gql`
-  mutation UpdateProfile($name: String, $avatar: String) {
-    updateProfile(name: $name, avatar: $avatar) {
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
       id
       name
+      email
       avatar
     }
   }
 `;
 
-const UPDATE_PASSWORD = gql`
-  mutation UpdatePassword($currentPassword: String!, $newPassword: String!) {
-    updatePassword(currentPassword: $currentPassword, newPassword: $newPassword) {
-      id
-    }
-  }
-`;
-
-interface ProfileFormData {
-  name: string;
-  avatar?: string;
-}
-
-interface PasswordFormData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+const formSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  avatar: z.string().optional(),
+});
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [avatar, setAvatar] = useState('');
-
-  const { data, loading: queryLoading } = useQuery(GET_USER);
-  const [updateProfile, { loading: updateLoading }] = useMutation(UPDATE_PROFILE);
-  const [updatePassword, { loading: passwordLoading }] = useMutation(UPDATE_PASSWORD);
-
-  const {
-    register: registerProfile,
-    handleSubmit: handleProfileSubmit,
-    formState: { errors: profileErrors },
-    setValue: setProfileValue,
-  } = useForm<ProfileFormData>();
-
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    formState: { errors: passwordErrors },
-    watch,
-    reset: resetPassword,
-  } = useForm<PasswordFormData>();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
+  useSession({
+    required: true,
+    onUnauthenticated() {
       router.push('/login');
-      return;
-    }
+    },
+  });
 
-    if (data?.me) {
-      setProfileValue('name', data.me.name);
-      setAvatar(data.me.avatar || '');
-    }
-  }, [data, status, router, setProfileValue]);
+  const { data: userData, loading: userLoading } = useQuery(GET_USER);
 
-  const onProfileSubmit = async (formData: ProfileFormData) => {
-    try {
-      await updateProfile({
-        variables: {
-          name: formData.name,
-          avatar: avatar || null,
-        },
-      });
+  const [updateProfile, { loading: updateLoading }] = useMutation(UPDATE_PROFILE, {
+    onCompleted: () => {
       toast.success('Profile updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile');
-    }
+    },
+    onError: () => {
+      toast.error('Failed to update profile');
+    },
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: userData?.me?.name || '',
+      email: userData?.me?.email || '',
+      avatar: userData?.me?.avatar || '',
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    await updateProfile({
+      variables: {
+        input: values,
+      },
+    });
   };
 
-  const onPasswordSubmit = async (formData: PasswordFormData) => {
-    if (formData.newPassword !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    try {
-      await updatePassword({
-        variables: {
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        },
-      });
-      toast.success('Password updated successfully');
-      resetPassword();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update password');
-    }
-  };
-
-  if (status === 'loading' || queryLoading) {
-    return <div className="loading loading-spinner loading-lg"></div>;
+  if (userLoading) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="container max-w-2xl py-8">
-      <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
+    <div className="container max-w-4xl py-10">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your profile details and avatar</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-6">
-              <div className="space-y-2">
-                <Label>Profile Picture</Label>
-                <ImageUpload
-                  value={avatar}
-                  onChange={setAvatar}
-                  className="h-40 w-40 mx-auto"
-                />
-              </div>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  {...registerProfile('name', { required: 'Name is required' })}
-                />
-                {profileErrors.name && (
-                  <p className="text-sm text-red-500">{profileErrors.name.message}</p>
-                )}
-              </div>
+          <FormField
+            control={form.control}
+            name="avatar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Avatar</FormLabel>
+                <FormControl>
+                  <ImageUpload value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={data?.me?.email}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Email cannot be changed
-                </p>
-              </div>
-
-              <Button type="submit" disabled={updateLoading}>
-                {updateLoading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>Update your password</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  {...registerPassword('currentPassword', {
-                    required: 'Current password is required',
-                  })}
-                />
-                {passwordErrors.currentPassword && (
-                  <p className="text-sm text-red-500">
-                    {passwordErrors.currentPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  {...registerPassword('newPassword', {
-                    required: 'New password is required',
-                    minLength: {
-                      value: 8,
-                      message: 'Password must be at least 8 characters',
-                    },
-                  })}
-                />
-                {passwordErrors.newPassword && (
-                  <p className="text-sm text-red-500">
-                    {passwordErrors.newPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  {...registerPassword('confirmPassword', {
-                    required: 'Please confirm your password',
-                    validate: (value) =>
-                      value === watch('newPassword') || 'Passwords do not match',
-                  })}
-                />
-                {passwordErrors.confirmPassword && (
-                  <p className="text-sm text-red-500">
-                    {passwordErrors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <Button type="submit" disabled={passwordLoading}>
-                {passwordLoading ? 'Updating...' : 'Update Password'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+          <Button type="submit" disabled={updateLoading}>
+            {updateLoading ? 'Updating...' : 'Update Profile'}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 } 

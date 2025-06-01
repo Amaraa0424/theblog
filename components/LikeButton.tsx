@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { useState } from 'react';
 import { Heart } from 'lucide-react';
+import { Button } from './ui/button';
+import { useSession } from 'next-auth/react';
+import { gql, useMutation } from '@apollo/client';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-const GET_POST_LIKES = gql`
-  query GetPostLikes($postId: String!) {
-    post(id: $postId) {
+const TOGGLE_LIKE = gql`
+  mutation ToggleLike($postId: String!) {
+    toggleLike(postId: $postId) {
+      id
       likes {
         id
         user {
@@ -20,88 +22,48 @@ const GET_POST_LIKES = gql`
   }
 `;
 
-const LIKE_POST = gql`
-  mutation LikePost($postId: String!) {
-    likePost(postId: $postId) {
-      id
-    }
-  }
-`;
-
-const UNLIKE_POST = gql`
-  mutation UnlikePost($postId: String!) {
-    unlikePost(postId: $postId) {
-      id
-    }
-  }
-`;
-
 interface LikeButtonProps {
   postId: string;
+  initialLikes: number;
+  initialLiked: boolean;
 }
 
-export function LikeButton({ postId }: LikeButtonProps) {
+export function LikeButton({ postId, initialLikes, initialLiked }: LikeButtonProps) {
+  const [liked, setLiked] = useState(initialLiked);
+  const [likes, setLikes] = useState(initialLikes);
   const { data: session } = useSession();
-  const [isLiked, setIsLiked] = useState(false);
-
-  const { data, loading } = useQuery(GET_POST_LIKES, {
-    variables: { postId },
-  });
-
-  useEffect(() => {
-    if (data?.post?.likes && session?.user?.id) {
-      setIsLiked(
-        data.post.likes.some((like: any) => like.user.id === session.user.id)
-      );
+  const [toggleLike] = useMutation(TOGGLE_LIKE, {
+    onCompleted: () => {
+      setLiked(!liked);
+      setLikes(liked ? likes - 1 : likes + 1);
+    },
+    onError: () => {
+      toast.error('Failed to toggle like');
     }
-  }, [data, session]);
-
-  const [likePost, { loading: liking }] = useMutation(LIKE_POST, {
-    refetchQueries: [{ query: GET_POST_LIKES, variables: { postId } }],
   });
 
-  const [unlikePost, { loading: unliking }] = useMutation(UNLIKE_POST, {
-    refetchQueries: [{ query: GET_POST_LIKES, variables: { postId } }],
-  });
-
-  const handleLikeClick = async () => {
+  const handleLike = async () => {
     if (!session) {
       toast.error('Please sign in to like posts');
       return;
     }
 
-    try {
-      if (isLiked) {
-        await unlikePost({ variables: { postId } });
-        setIsLiked(false);
-        toast.success('Post unliked');
-      } else {
-        await likePost({ variables: { postId } });
-        setIsLiked(true);
-        toast.success('Post liked');
-      }
-    } catch (error) {
-      toast.error('Failed to update like status');
-    }
+    await toggleLike({
+      variables: {
+        postId,
+      },
+    });
   };
-
-  const likeCount = data?.post?.likes?.length || 0;
-  const isLoading = loading || liking || unliking;
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={handleLikeClick}
-      disabled={isLoading}
       className="flex items-center gap-2"
+      onClick={handleLike}
     >
-      {isLiked ? (
-        <Heart className="w-5 h-5 fill-current text-red-500" />
-      ) : (
-        <Heart className="w-5 h-5" />
-      )}
-      <span>{likeCount}</span>
+      <Heart className={cn('h-4 w-4', liked && 'fill-current text-red-500')} />
+      {likes}
     </Button>
   );
 } 

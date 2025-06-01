@@ -5,18 +5,19 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const GET_COMMENTS = gql`
-  query GetComments($postId: String!) {
+  query GetComments($postId: ID!) {
     post(id: $postId) {
       comments {
         id
         content
+        createdAt
+        guestName
         author {
           name
         }
-        guestName
-        createdAt
       }
     }
   }
@@ -36,6 +37,30 @@ const CREATE_COMMENT = gql`
   }
 `;
 
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  guestName?: string;
+  author?: {
+    name: string;
+  };
+}
+
+interface CommentsQueryData {
+  post: {
+    comments: Comment[];
+  };
+}
+
+interface CreateCommentMutationData {
+  createComment: Comment;
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
 interface CommentsProps {
   postId: string;
 }
@@ -50,11 +75,11 @@ export function Comments({ postId }: CommentsProps) {
   const [isGuest, setIsGuest] = useState(!session);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CommentFormData>();
   
-  const { data, loading: loadingComments } = useQuery(GET_COMMENTS, {
+  const { data, loading: loadingComments } = useQuery<CommentsQueryData>(GET_COMMENTS, {
     variables: { postId },
   });
 
-  const [createComment, { loading: submitting }] = useMutation(CREATE_COMMENT, {
+  const [createComment, { loading: submitting }] = useMutation<CreateCommentMutationData>(CREATE_COMMENT, {
     refetchQueries: [{ query: GET_COMMENTS, variables: { postId } }],
   });
 
@@ -69,7 +94,8 @@ export function Comments({ postId }: CommentsProps) {
       });
       reset();
     } catch (error) {
-      console.error('Failed to create comment:', error);
+      const err = error as ErrorResponse;
+      toast.error(err.message || "Failed to add comment");
     }
   };
 
@@ -129,7 +155,7 @@ export function Comments({ postId }: CommentsProps) {
         {loadingComments ? (
           <p className="text-muted-foreground">Loading comments...</p>
         ) : data?.post?.comments?.length > 0 ? (
-          data.post.comments.map((comment: any) => (
+          data.post.comments.map((comment: Comment) => (
             <div key={comment.id} className="border rounded-lg p-4 bg-card">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium">

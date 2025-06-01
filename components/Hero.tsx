@@ -6,10 +6,35 @@ import { Error } from "@/components/ui/error";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { toast } from 'sonner';
 
-const FEATURED_POSTS = gql`
-  query FeaturedPosts {
-    publishedPosts(take: 3) {
+interface Post {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  createdAt: string;
+  author: {
+    name: string;
+    avatar?: string;
+  };
+  category: {
+    id: string;
+    name: string;
+  };
+}
+
+interface FeaturedPostsQueryData {
+  publishedPosts: Post[];
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+const GET_FEATURED_POSTS = gql`
+  query GetFeaturedPosts {
+    publishedPosts(first: 3, orderBy: { createdAt: desc }) {
       id
       title
       subtitle
@@ -28,9 +53,11 @@ const FEATURED_POSTS = gql`
 `;
 
 export function Hero() {
-  const { data, loading, error, refetch } = useQuery(FEATURED_POSTS);
+  const { data, loading, error, refetch } = useQuery<FeaturedPostsQueryData>(GET_FEATURED_POSTS);
 
   if (error) {
+    const err = error as ErrorResponse;
+    toast.error(err.message || "Failed to subscribe to newsletter");
     return (
       <Error
         message={error.message}
@@ -111,7 +138,7 @@ export function Hero() {
                 <div className="aspect-[16/9] bg-muted animate-pulse rounded-3xl" />
               </>
             ) : (
-              data?.publishedPosts.slice(1, 3).map((post: any) => (
+              data?.publishedPosts.slice(1, 3).map((post: Post) => (
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}

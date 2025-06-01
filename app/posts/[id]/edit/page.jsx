@@ -4,21 +4,6 @@ import { gql } from '@apollo/client';
 import { getClient } from '@/lib/apollo-client';
 import { PostForm } from '@/components/PostForm';
 
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  category: {
-    id: string;
-    name: string;
-  };
-}
-
-interface PostData {
-  post: Post;
-}
-
 const GET_POST = gql`
   query GetPost($id: ID!) {
     post(id: $id) {
@@ -34,12 +19,8 @@ const GET_POST = gql`
   }
 `;
 
-export default async function EditPostPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { data } = await getClient().query<PostData>({
+export default async function EditPostPage({ params }) {
+  const { data } = await getClient().query({
     query: GET_POST,
     variables: { id: params.id },
   });

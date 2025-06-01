@@ -14,6 +14,10 @@ interface ImageUploadProps {
   className?: string;
 }
 
+interface ErrorResponse {
+  message: string;
+}
+
 export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -50,8 +54,9 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
         const data = await response.json();
         onChange(data.url);
         toast.success('Image uploaded successfully');
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to upload image');
+      } catch (error) {
+        const err = error as ErrorResponse;
+        toast.error(err.message || "Failed to upload image");
     } finally {
         setIsUploading(false);
     }

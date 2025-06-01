@@ -6,7 +6,7 @@ builder.prismaObject("Category", {
     name: t.exposeString("name"),
     description: t.exposeString("description", { nullable: true }),
     posts: t.relation("posts"),
-    createdAt: t.expose("createdAt", { type: "Date" }),
-    updatedAt: t.expose("updatedAt", { type: "Date" }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 }); 

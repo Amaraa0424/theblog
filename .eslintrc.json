@@ -1,0 +1,44 @@
+{
+  "extends": "next/core-web-vitals",
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-unused-expressions": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^[A-Z]|^[a-z]$|^[a-zA-Z]{2}$",
+      "ignoreRestSiblings": true
+    }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-this-alias": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-async-client-component": "warn",
+    "no-unused-expressions": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/**/*",
+    ".next/**/*",
+    "prisma/**/*",
+    "public/**/*"
+  ],
+  "overrides": [
+    {
+      "files": ["app/generated/**/*"],
+      "rules": {
+        "@typescript-eslint/no-unused-expressions": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-require-imports": "off",
+        "no-unused-expressions": "off"
+      }
+    },
+    {
+      "files": ["app/posts/[id]/edit/page.tsx", "app/posts/page.tsx"],
+      "rules": {
+        "@next/next/no-async-client-component": "off"
+      }
+    }
+  ]
+}

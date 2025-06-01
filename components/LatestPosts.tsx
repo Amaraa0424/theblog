@@ -2,10 +2,38 @@
 
 import { gql, useQuery } from '@apollo/client';
 import { PostCard } from '@/components/PostCard';
+import { toast } from 'sonner';
 
-const PUBLISHED_POSTS = gql`
-  query PublishedPosts {
-    publishedPosts {
+interface Post {
+  id: string;
+  title: string;
+  subtitle?: string;
+  content: string;
+  image?: string;
+  createdAt: string;
+  likes: {
+    id: string;
+    user: {
+      id: string;
+    };
+  }[];
+  author: {
+    id: string;
+    name: string;
+  };
+}
+
+interface PublishedPostsQueryData {
+  publishedPosts: Post[];
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+const GET_PUBLISHED_POSTS = gql`
+  query GetPublishedPosts {
+    publishedPosts(orderBy: { createdAt: desc }) {
       id
       title
       subtitle
@@ -27,10 +55,14 @@ const PUBLISHED_POSTS = gql`
 `;
 
 export function LatestPosts() {
-  const { data, loading, error } = useQuery(PUBLISHED_POSTS);
+  const { data, loading, error } = useQuery<PublishedPostsQueryData>(GET_PUBLISHED_POSTS);
 
   if (loading) return <div className="loading loading-spinner loading-lg"></div>;
-  if (error) return <div className="alert alert-error">{error.message}</div>;
+  if (error) {
+    const err = error as ErrorResponse;
+    toast.error(err.message || "Failed to load posts");
+    return <div className="alert alert-error">{err.message}</div>;
+  }
 
   return (
     <section className="bg-muted/30 py-16">
@@ -51,7 +83,7 @@ export function LatestPosts() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.publishedPosts.map((post: any) => (
+            {data?.publishedPosts.map((post: Post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>

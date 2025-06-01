@@ -11,7 +11,6 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
 import {
@@ -31,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const GET_CATEGORIES = gql`
   query GetCategories {
@@ -53,32 +53,29 @@ const CREATE_CATEGORY = gql`
 `;
 
 interface Category {
-  id: string;
-  name: string;
-  description?: string | null;
+  value: string;
+  label: string;
 }
 
 interface CategoryComboboxProps {
-  value?: string;
+  categories: Category[];
+  selectedValue: string;
   onChange: (value: string) => void;
 }
 
-export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
-  const [open, setOpen] = React.useState(false);
+interface ErrorResponse {
+  message: string;
+}
+
+export function CategoryCombobox({ categories, selectedValue, onChange }: CategoryComboboxProps) {
+  const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const { data, loading, refetch } = useQuery(GET_CATEGORIES);
   const [createCategory] = useMutation(CREATE_CATEGORY);
 
-  const categories = data?.categories || [];
-  const filteredCategories = categories.filter((category: Category) =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const selectedCategory = categories.find(
-    (category: Category) => category.id === value
-  );
+  const filteredCategories = data?.categories || [];
 
   const handleCreateCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,8 +96,9 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
       setDialogOpen(false);
       toast.success("Category created successfully");
       refetch(); // Refresh the categories list
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create category");
+    } catch (error) {
+      const err = error as ErrorResponse;
+      toast.error(err.message || "Failed to create category");
     }
   };
 
@@ -114,103 +112,101 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {value
-              ? selectedCategory?.name
+            {selectedValue
+              ? categories.find((category) => category.value === selectedValue)?.label
               : "Select category..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput
               placeholder="Search category..."
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
-            <CommandList>
-              <CommandEmpty className="py-6 text-center text-sm">
-                {loading ? (
-                  "Loading categories..."
-                ) : (
-                  "No category found."
-                )}
-              </CommandEmpty>
-              <CommandGroup>
-                {filteredCategories.map((category: Category) => (
+            <CommandEmpty className="py-6 text-center text-sm">
+              {loading ? (
+                "Loading categories..."
+              ) : (
+                "No category found."
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {filteredCategories.map((category: Category) => (
+                <CommandItem
+                  key={category.value}
+                  value={category.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === selectedValue ? "" : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedValue === category.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {category.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
                   <CommandItem
-                    key={category.id}
-                    value={category.id}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue);
+                    onSelect={() => {
+                      setDialogOpen(true);
                       setOpen(false);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === category.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {category.name}
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create new category
                   </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <CommandItem
-                      onSelect={() => {
-                        setDialogOpen(true);
-                        setOpen(false);
-                      }}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create new category
-                    </CommandItem>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <form onSubmit={handleCreateCategory}>
-                      <DialogHeader>
-                        <DialogTitle>Create new category</DialogTitle>
-                        <DialogDescription>
-                          Add a new category for your posts.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            placeholder="Enter category name"
-                            required
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="description">Description</Label>
-                          <Input
-                            id="description"
-                            name="description"
-                            placeholder="Enter category description (optional)"
-                          />
-                        </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <form onSubmit={handleCreateCategory}>
+                    <DialogHeader>
+                      <DialogTitle>Create new category</DialogTitle>
+                      <DialogDescription>
+                        Add a new category for your posts.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder="Enter category name"
+                          required
+                        />
                       </div>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit">Create</Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CommandGroup>
-            </CommandList>
+                      <div className="grid gap-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Input
+                          id="description"
+                          name="description"
+                          placeholder="Enter category description (optional)"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit">Create</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CommandGroup>
           </Command>
         </PopoverContent>
       </Popover>

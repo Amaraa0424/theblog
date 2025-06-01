@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, Reference } from '@apollo/client';
 import { MoreVertical, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -32,13 +32,19 @@ const DELETE_POST = gql`
   }
 `;
 
-interface PostMenuProps {
-  post: {
+interface Post {
+  id: string;
+  author: {
     id: string;
-    author: {
-      id: string;
-    };
   };
+}
+
+interface PostMenuProps {
+  post: Post;
+}
+
+interface ErrorResponse {
+  message: string;
 }
 
 export function PostMenu({ post }: PostMenuProps) {
@@ -48,17 +54,16 @@ export function PostMenu({ post }: PostMenuProps) {
 
   const [deletePost, { loading }] = useMutation(DELETE_POST, {
     update(cache) {
-      // Remove the deleted post from the cache
       cache.modify({
         fields: {
-          userPosts(existingPosts = [], { readField }) {
+          userPosts(existingPosts: Reference[] = []) {
             return existingPosts.filter(
-              (postRef: any) => readField('id', postRef) !== post.id
+              (postRef) => postRef.__ref !== `Post:${post.id}`
             );
           },
-          posts(existingPosts = [], { readField }) {
+          posts(existingPosts: Reference[] = []) {
             return existingPosts.filter(
-              (postRef: any) => readField('id', postRef) !== post.id
+              (postRef) => postRef.__ref !== `Post:${post.id}`
             );
           },
         },
@@ -69,8 +74,9 @@ export function PostMenu({ post }: PostMenuProps) {
       setIsDeleteDialogOpen(false);
       router.refresh();
     },
-    onError: () => {
-      toast.error('Failed to delete post');
+    onError: (error) => {
+      const err = error as ErrorResponse;
+      toast.error(err.message || "Failed to delete post");
       setIsDeleteDialogOpen(false);
     },
   });
@@ -88,7 +94,8 @@ export function PostMenu({ post }: PostMenuProps) {
       try {
         await deletePost({ variables: { id: post.id } });
       } catch (error) {
-        console.error('Error deleting post:', error);
+        const err = error as ErrorResponse;
+        toast.error(err.message || "Failed to delete post");
     }
   };
 
