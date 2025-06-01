@@ -10,7 +10,7 @@ import { Navbar } from '@/components/Navbar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL('https://theblog-indol.vercel.app'),
   title: {
     default: 'TheBlog',
     template: '%s | TheBlog'
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://theblog.com',
+    url: 'https://theblog-indol.vercel.app',
     siteName: 'TheBlog',
     title: 'TheBlog',
     description: 'A modern blog platform for sharing your thoughts and ideas',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     title: 'TheBlog',
     description: 'A modern blog platform for sharing your thoughts and ideas',
     images: ['/images/og-image.jpg'],
-    creator: '@yourtwitterhandle'
+    creator: '@amaraa0424'
   },
   robots: {
     index: true,
