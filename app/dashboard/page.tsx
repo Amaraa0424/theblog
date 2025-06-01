@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { PostCard } from '@/components/PostCard';
+import { useEffect } from 'react';
 
 const USER_POSTS = gql`
   query UserPosts {
@@ -35,17 +36,22 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const { data, loading, error } = useQuery(USER_POSTS);
 
-  // Redirect to login if not authenticated
-  if (status === 'unauthenticated') {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
 
   if (loading || status === 'loading') {
     return <div className="loading loading-spinner loading-lg"></div>;
   }
   
   if (error) return <div className="alert alert-error">{error.message}</div>;
+
+  // If not authenticated, render nothing while redirecting
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -22,7 +22,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await validateCredentials(credentials.email, credentials.password);
+        const user = await validateCredentials({
+          email: credentials.email,
+          password: credentials.password
+        });
         return user;
       },
     }),
