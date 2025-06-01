@@ -3,11 +3,19 @@
 import { gql, useQuery } from '@apollo/client';
 import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
+import { useSession } from 'next-auth/react';
 import { Comments } from '@/components/Comments';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareButton } from '@/components/ShareButton';
 import { RichTextReadOnly } from '@/components/RichTextReadOnly';
 import Image from 'next/image';
+
+interface Like {
+  id: string;
+  user: {
+    id: string;
+  };
+}
 
 const GET_POST = gql`
   query GetPost($id: String!) {
@@ -35,6 +43,7 @@ const GET_POST = gql`
 
 export default function PostPage() {
   const params = useParams();
+  const { data: session } = useSession();
   const { data, loading, error } = useQuery(GET_POST, {
     variables: { id: params.id },
   });
@@ -60,7 +69,11 @@ export default function PostPage() {
             </time>
           </div>
           <div className="flex items-center gap-2">
-            <LikeButton postId={post.id} />
+            <LikeButton 
+              postId={post.id}
+              initialLikes={post.likes.length}
+              initialLiked={post.likes.some((like: Like) => like.user.id === session?.user?.id)}
+            />
             <ShareButton postId={post.id} title={post.title} />
           </div>
         </div>

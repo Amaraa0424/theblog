@@ -10,8 +10,40 @@ import { Navbar } from '@/components/Navbar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TheBlog',
-  description: 'A modern blog platform',
+  title: {
+    default: 'TheBlog',
+    template: '%s | TheBlog'
+  },
+  description: 'A modern blog platform for sharing your thoughts and ideas',
+  keywords: ['blog', 'writing', 'articles', 'thoughts', 'ideas'],
+  authors: [{ name: 'Amaraa' }],
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://theblog-indol.vercel.app/',
+    siteName: 'TheBlog',
+    title: 'TheBlog',
+    description: 'A modern blog platform for sharing your thoughts and ideas',
+    images: [
+      {
+        url: '/images/logo.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'TheBlog'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TheBlog',
+    description: 'A modern blog platform for sharing your thoughts and ideas',
+    images: ['/images/logo.jpg'],
+    creator: '@amaraa0424'
+  },
+  robots: {
+    index: true,
+    follow: true
+  }
 };
 
 export default function RootLayout({

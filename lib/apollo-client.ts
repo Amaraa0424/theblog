@@ -26,7 +26,7 @@ export const client = new ApolloClient({
 
 export function getClient() {
   return new ApolloClient({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3000/graphql',
     cache: new InMemoryCache(),
   });
 } 
