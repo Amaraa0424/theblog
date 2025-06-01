@@ -1,57 +1,21 @@
-'use client';
-
-import { gql } from '@apollo/client';
-import { getClient } from '@/lib/apollo-client';
+import { Suspense } from 'react';
+import { use } from 'react';
 import { PostForm } from '@/components/PostForm';
+import { EditPostContent } from './EditPostContent';
 
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  category: {
-    id: string;
-    name: string;
-  };
-}
-
-interface PostData {
-  post: Post;
-}
-
-const GET_POST = gql`
-  query GetPost($id: ID!) {
-    post(id: $id) {
-      id
-      title
-      content
-      published
-      category {
-        id
-        name
-      }
-    }
-  }
-`;
-
-export default async function EditPostPage({
+export default function EditPostPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { data } = await getClient().query<PostData>({
-    query: GET_POST,
-    variables: { id: params.id },
-  });
-
-  if (!data?.post) {
-    return <div>Post not found</div>;
-  }
+  const resolvedParams = use(Promise.resolve(params));
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Edit Post</h1>
-      <PostForm post={data.post} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <EditPostContent id={resolvedParams.id} />
+      </Suspense>
     </div>
   );
 } 

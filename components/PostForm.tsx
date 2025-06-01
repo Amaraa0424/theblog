@@ -29,11 +29,11 @@ interface PostFormProps {
 
 const UPDATE_POST_MUTATION = gql`
   mutation UpdatePost(
-    $id: ID!
+    $id: String!
     $title: String!
     $content: String!
     $published: Boolean!
-    $categoryId: ID!
+    $categoryId: String!
   ) {
     updatePost(
       id: $id

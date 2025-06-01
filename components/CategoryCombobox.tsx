@@ -58,8 +58,7 @@ interface Category {
 }
 
 interface CategoryComboboxProps {
-  categories: Category[];
-  selectedValue: string;
+  value: string;
   onChange: (value: string) => void;
 }
 
@@ -67,7 +66,16 @@ interface ErrorResponse {
   message: string;
 }
 
-export function CategoryCombobox({ categories, selectedValue, onChange }: CategoryComboboxProps) {
+interface GraphQLCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export function CategoryCombobox({
+  value,
+  onChange,
+}: CategoryComboboxProps) {
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -75,7 +83,12 @@ export function CategoryCombobox({ categories, selectedValue, onChange }: Catego
   const { data, loading, refetch } = useQuery(GET_CATEGORIES);
   const [createCategory] = useMutation(CREATE_CATEGORY);
 
-  const filteredCategories = data?.categories || [];
+  const filteredCategories = (data?.categories || []).map(
+    (cat: GraphQLCategory) => ({
+      value: cat.id,
+      label: cat.name,
+    })
+  );
 
   const handleCreateCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,8 +125,10 @@ export function CategoryCombobox({ categories, selectedValue, onChange }: Catego
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {selectedValue
-              ? categories.find((category) => category.value === selectedValue)?.label
+            {value
+              ? filteredCategories.find(
+                  (category: Category) => category.value === value
+                )?.label
               : "Select category..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -126,11 +141,7 @@ export function CategoryCombobox({ categories, selectedValue, onChange }: Catego
               onValueChange={setSearchQuery}
             />
             <CommandEmpty className="py-6 text-center text-sm">
-              {loading ? (
-                "Loading categories..."
-              ) : (
-                "No category found."
-              )}
+              {loading ? "Loading categories..." : "No category found."}
             </CommandEmpty>
             <CommandGroup>
               {filteredCategories.map((category: Category) => (
@@ -138,14 +149,18 @@ export function CategoryCombobox({ categories, selectedValue, onChange }: Catego
                   key={category.value}
                   value={category.value}
                   onSelect={(currentValue) => {
-                    onChange(currentValue === selectedValue ? "" : currentValue);
+                    onChange(
+                      currentValue === value ? "" : currentValue
+                    );
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedValue === category.value ? "opacity-100" : "opacity-0"
+                      value === category.value
+                        ? "opacity-100"
+                        : "opacity-0"
                     )}
                   />
                   {category.label}
@@ -212,4 +227,4 @@ export function CategoryCombobox({ categories, selectedValue, onChange }: Catego
       </Popover>
     </div>
   );
-} 
+}
