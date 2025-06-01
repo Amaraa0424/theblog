@@ -3,6 +3,13 @@
 import { gql, useQuery } from '@apollo/client';
 import { PostCard } from '@/components/PostCard';
 import { toast } from 'sonner';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface Post {
   id: string;
@@ -65,7 +72,7 @@ export function LatestPosts() {
   }
 
   return (
-    <section className="bg-muted/30 py-16">
+    <section className="bg-muted/30 py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Latest Posts</h2>
@@ -82,13 +89,30 @@ export function LatestPosts() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.publishedPosts.map((post: Post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+          <div className="relative">
+            <Carousel
+              opts={{
+                align: "start",
+                slidesToScroll: 1,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {data?.publishedPosts.map((post: Post) => (
+                  <CarouselItem 
+                    key={post.id} 
+                    className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3"
+                  >
+                    <PostCard post={post} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
       </div>
     </section>
   );
-} 
+}

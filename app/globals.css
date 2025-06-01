@@ -10,6 +10,13 @@ body {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+/* Prevent body scroll when modal is open */
+body[data-state="open"] {
+  overflow: hidden;
+  padding-right: var(--removed-body-scroll-bar-size, 0px);
 }
 
 @theme inline {

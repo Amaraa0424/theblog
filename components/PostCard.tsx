@@ -41,40 +41,42 @@ export function PostCard({ post }: PostCardProps) {
     .slice(0, 160) + '...'; // Limit length
 
   return (
-    <article className="group relative flex flex-col space-y-2 bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+    <article className="group relative flex flex-col h-full w-full bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
       <PostMenu post={post} />
-      {post.image ? (
-        <div className="relative w-full h-48 overflow-hidden">
-          <Image
-            src={post.image}
-            alt={post.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-      ) : (
-        <div className="relative w-full h-48 bg-muted/50">
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            No image
+      <Link href={`/posts/${post.id}`}>
+        {post.image ? (
+          <div className="relative w-full aspect-video overflow-hidden">
+            <Image
+              src={post.image}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           </div>
-        </div>
-      )}
-      <div className="p-6 space-y-4">
+        ) : (
+          <div className="relative w-full aspect-video bg-muted/50">
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              No image
+            </div>
+          </div>
+        )}
+      </Link>
+      <div className="p-4 sm:p-6 flex-1 flex flex-col">
         <Link 
           href={`/posts/${post.id}`} 
-          className="block space-y-2 hover:cursor-pointer"
+          className="flex-1 block space-y-2 hover:cursor-pointer overflow-hidden"
         >
-          <h2 className="text-2xl font-bold leading-tight tracking-tight hover:text-primary transition-colors">
+          <h2 className="text-xl sm:text-2xl font-bold leading-tight tracking-tight hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h2>
-          <p className="text-muted-foreground line-clamp-2">
+          <p className="text-sm sm:text-base text-muted-foreground line-clamp-3">
             {excerpt}
           </p>
         </Link>
 
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            <span>{post.author.name}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mt-4">
+          <div className="text-xs sm:text-sm text-muted-foreground truncate max-w-full sm:max-w-[60%]">
+            <span className="truncate">{post.author.name}</span>
             <span className="mx-2">•</span>
             <time dateTime={post.createdAt}>
               {format(new Date(post.createdAt), 'MMM d, yyyy')}
@@ -92,4 +94,4 @@ export function PostCard({ post }: PostCardProps) {
       </div>
     </article>
   );
-} 
+}

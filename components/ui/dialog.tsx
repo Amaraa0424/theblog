@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils"
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  React.useEffect(() => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.setProperty('--removed-body-scroll-bar-size', `${scrollbarWidth}px`);
+  }, []);
+
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 

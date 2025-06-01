@@ -1,15 +1,24 @@
 import { builder } from '../../lib/builder';
 
-// Define the OrderByInput type
-builder.enumType('OrderDirection', {
+// Define the OrderDirection type
+const OrderDirection = builder.enumType('OrderDirection', {
   values: ['asc', 'desc'] as const,
 });
 
-builder.inputType('PostOrderByInput', {
+// Define the LikesOrderByInput type
+const LikesOrderByInput = builder.inputType('LikesOrderByInput', {
   fields: (t) => ({
-    createdAt: t.field({ type: 'OrderDirection' }),
-    updatedAt: t.field({ type: 'OrderDirection' }),
-    title: t.field({ type: 'OrderDirection' }),
+    _count: t.field({ type: OrderDirection }),
+  }),
+});
+
+// Define the PostOrderByInput type
+const PostOrderByInput = builder.inputType('PostOrderByInput', {
+  fields: (t) => ({
+    createdAt: t.field({ type: OrderDirection }),
+    updatedAt: t.field({ type: OrderDirection }),
+    title: t.field({ type: OrderDirection }),
+    likes: t.field({ type: LikesOrderByInput }),
   }),
 });
 
@@ -113,7 +122,9 @@ builder.queryType({
         take: t.arg.int(),
         skip: t.arg.int(),
         categoryId: t.arg.string(),
-        orderBy: t.arg({ type: 'PostOrderByInput' }),
+        orderBy: t.arg({
+          type: PostOrderByInput,
+        }),
       },
       resolve: async (query, root, args, ctx) => {
         return ctx.prisma.post.findMany({
