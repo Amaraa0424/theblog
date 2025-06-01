@@ -1,6 +1,8 @@
-// import { gql } from "@apollo/client";
-// import { getClient } from "@/lib/apollo-client";
-import { LatestPosts } from "@/components/LatestPosts";
+'use client';
+
+import { gql, useQuery } from '@apollo/client';
+import { BlogLayout } from '@/components/blog-layout';
+import type { Post } from '@/lib/types';
 
 // interface Post {
 //   id: string;
@@ -30,14 +32,40 @@ import { LatestPosts } from "@/components/LatestPosts";
 //   }
 // `;
 
-export default async function PostsPage() {
-  // const { data } = await getClient().query<PostsData>({
-  //   query: GET_POSTS,
-  // });
+const GET_INITIAL_POSTS = gql`
+  query GetInitialPosts {
+    publishedPosts(orderBy: { createdAt: desc }) {
+      id
+      title
+      subtitle
+      content
+      image
+      published
+      createdAt
+      category {
+        id
+        name
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      likes {
+        id
+        user {
+          id
+        }
+      }
+    }
+  }
+`;
 
-  return (
-    <main>
-      <LatestPosts />
-    </main>
-  );
+export default function PostsPage() {
+  const { data, loading, error } = useQuery<{ publishedPosts: Post[] }>(GET_INITIAL_POSTS);
+
+  if (loading) return <div className="loading loading-spinner loading-lg"></div>;
+  if (error) return <div className="alert alert-error">{error.message}</div>;
+
+  return <BlogLayout initialPosts={data?.publishedPosts || []} />;
 }

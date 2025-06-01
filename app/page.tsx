@@ -1,9 +1,9 @@
 "use client";
 
-import { Hero } from "@/components/Hero";
-import { LatestPosts } from "@/components/LatestPosts";
+import { Hero } from '@/components/Hero';
+import { LatestPosts } from '@/components/LatestPosts';
 
-export default function Home() {
+export default function HomePage() {
   return (
     <main>
       <Hero />

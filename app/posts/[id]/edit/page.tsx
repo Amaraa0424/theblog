@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { use } from 'react';
-import { PostForm } from '@/components/PostForm';
 import { EditPostContent } from './EditPostContent';
 
 export default function EditPostPage({
