@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-import { gql } from '@apollo/client';
-import { getClient } from '@/lib/apollo-server';
+import type { Metadata } from "next";
+import { gql } from "@apollo/client";
+import { getClient } from "@/lib/apollo-server";
 
 const GET_POST_METADATA = gql`
   query GetPostMetadata($id: String!) {
@@ -28,31 +28,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { data } = await getClient().query({
       query: GET_POST_METADATA,
-      variables: { id: await params.id }
+      variables: { id: await params.id },
     });
 
     if (!data?.post) {
       return {
-        title: 'Post Not Found',
-        description: 'The requested post could not be found.',
+        title: "Post Not Found",
+        description: "The requested post could not be found.",
         openGraph: {
-          title: 'Post Not Found',
-          description: 'The requested post could not be found.',
-          type: 'article',
+          title: "Post Not Found",
+          description: "The requested post could not be found.",
+          type: "article",
           images: [
             {
-              url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png',
+              url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png",
               width: 1200,
               height: 630,
-              alt: 'Post Not Found'
-            }
-          ]
-        }
+              alt: "Post Not Found",
+            },
+          ],
+        },
       };
     }
 
     const post = data.post;
-    const description = post.subtitle || post.content.replace(/<[^>]*>/g, '').slice(0, 200) + '...';
+    const description =
+      post.subtitle ||
+      post.content.replace(/<[^>]*>/g, "").slice(0, 200) + "...";
     const defaultOgImage = `https://theblog-indol.vercel.app/images/logo.jpg`;
 
     return {
@@ -61,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: post.title,
         description: description,
-        type: 'article',
+        type: "article",
         authors: [post.author.name],
         publishedTime: post.createdAt,
         images: [
@@ -69,39 +71,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             url: post.image || defaultOgImage,
             width: 1200,
             height: 630,
-            alt: post.title
-          }
-        ]
+            alt: post.title,
+          },
+        ],
       },
       twitter: {
-        card: 'summary_large_image',
+        card: "summary_large_image",
         title: post.title,
         description: description,
-        images: [post.image || defaultOgImage]
-      }
+        images: [post.image || defaultOgImage],
+      },
     };
   } catch (error) {
-    console.error('Error generating metadata:', error);
+    console.error("Error generating metadata:", error);
     return {
-      title: 'Error',
-      description: 'An error occurred while loading the post.',
+      title: "Error",
+      description: "An error occurred while loading the post.",
       openGraph: {
-        title: 'Error',
-        description: 'An error occurred while loading the post.',
-        type: 'article',
+        title: "Error",
+        description: "An error occurred while loading the post.",
+        type: "article",
         images: [
           {
-            url: 'https://placehold.co/1200x630/ef4444/ffffff/png?text=Error',
+            url: "https://placehold.co/1200x630/ef4444/ffffff/png?text=Error",
             width: 1200,
             height: 630,
-            alt: 'Error'
-          }
-        ]
-      }
+            alt: "Error",
+          },
+        ],
+      },
     };
   }
 }
 
 export default function PostLayout({ children }: Props) {
   return children;
-} 
+}

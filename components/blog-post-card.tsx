@@ -5,12 +5,17 @@ import { LikeButton } from '@/components/LikeButton';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import type { Post } from '@/lib/types';
+import { useSession } from 'next-auth/react';
 
 interface BlogPostCardProps {
   post: Post;
 }
 
 export function BlogPostCard({ post }: BlogPostCardProps) {
+  const { data: session } = useSession();
+  const initialLikes = post.likes.length;
+  const initialLiked = post.likes.some(like => like.user.id === session?.user?.id);
+
   return (
     <Card className="overflow-hidden">
       <Link href={`/posts/${post.id}`}>
@@ -66,7 +71,11 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
           )}
           <span className="text-sm text-muted-foreground">{post.author.name}</span>
         </div>
-        <LikeButton postId={post.id} likes={post.likes} />
+        <LikeButton 
+          postId={post.id} 
+          initialLikes={initialLikes}
+          initialLiked={initialLiked}
+        />
       </CardFooter>
     </Card>
   );
