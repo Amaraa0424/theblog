@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu";
 import { UserNav } from "./UserNav";
 import { useSession } from "next-auth/react";
 
@@ -16,24 +20,32 @@ export function Navbar() {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
+              <Link href="/" className="text-xl font-bold">
                 <Button variant="link" className="text-xl font-bold">
                   TheBlog
                 </Button>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/posts" legacyBehavior passHref>
+              <Link href="/posts">
                 <Button variant="link">Posts</Button>
               </Link>
             </NavigationMenuItem>
             {session && (
               <NavigationMenuItem>
-                <Link href="/posts/new" legacyBehavior passHref>
+                <Link href="/dashboard">
+                  <Button variant="link">Dashboard</Button>
+                </Link>
+              </NavigationMenuItem>
+            )}
+            {session && (
+              <NavigationMenuItem>
+                <Link href="/posts/new">
                   <Button variant="link">New Post</Button>
                 </Link>
               </NavigationMenuItem>
             )}
+            
           </NavigationMenuList>
         </NavigationMenu>
         <div className="ml-auto flex items-center space-x-4">
@@ -44,10 +56,10 @@ export function Navbar() {
             <UserNav />
           ) : (
             <>
-              <Link href="/login" legacyBehavior passHref>
+              <Link href="/login">
                 <Button variant="ghost">Login</Button>
               </Link>
-              <Link href="/register" legacyBehavior passHref>
+              <Link href="/register">
                 <Button>Sign up</Button>
               </Link>
             </>

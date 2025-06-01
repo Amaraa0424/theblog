@@ -34,7 +34,7 @@ interface ErrorResponse {
 
 const GET_FEATURED_POSTS = gql`
   query GetFeaturedPosts {
-    publishedPosts(first: 3, orderBy: { createdAt: desc }) {
+    publishedPosts(take: 3, orderBy: { createdAt: desc }) {
       id
       title
       subtitle

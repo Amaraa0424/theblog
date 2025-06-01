@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { LikeButton } from './LikeButton';
 import { ShareButton } from './ShareButton';
 import { PostMenu } from './PostMenu';
+import { useSession } from 'next-auth/react';
 
 interface PostCardProps {
   post: {
@@ -29,6 +30,10 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const { data: session } = useSession();
+  const isLiked = post.likes.some(like => like.user.id === session?.user?.id);
+  const likesCount = post.likes.length;
+
   // Extract first paragraph for excerpt if no subtitle
   const excerpt = post.subtitle || post.content
     .replace(/<[^>]*>/g, '') // Remove HTML tags
@@ -38,7 +43,6 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <article className="group relative flex flex-col space-y-2 bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
       <PostMenu post={post} />
-      
       {post.image ? (
         <div className="relative w-full h-48 overflow-hidden">
           <Image
@@ -55,17 +59,17 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
       )}
-
       <div className="p-6 space-y-4">
-        <Link href={`/posts/${post.id}`}>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold leading-tight tracking-tight hover:text-primary transition-colors">
-              {post.title}
-            </h2>
-            <p className="text-muted-foreground line-clamp-2">
-              {excerpt}
-            </p>
-          </div>
+        <Link 
+          href={`/posts/${post.id}`} 
+          className="block space-y-2 hover:cursor-pointer"
+        >
+          <h2 className="text-2xl font-bold leading-tight tracking-tight hover:text-primary transition-colors">
+            {post.title}
+          </h2>
+          <p className="text-muted-foreground line-clamp-2">
+            {excerpt}
+          </p>
         </Link>
 
         <div className="flex items-center justify-between">
@@ -77,7 +81,11 @@ export function PostCard({ post }: PostCardProps) {
             </time>
           </div>
           <div className="flex items-center gap-2">
-            <LikeButton postId={post.id} />
+            <LikeButton 
+              postId={post.id} 
+              initialLikes={likesCount}
+              initialLiked={isLiked}
+            />
             <ShareButton postId={post.id} title={post.title} />
           </div>
         </div>

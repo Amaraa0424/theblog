@@ -1,5 +1,18 @@
 import { builder } from '../../lib/builder';
 
+// Define the OrderByInput type
+builder.enumType('OrderDirection', {
+  values: ['asc', 'desc'] as const,
+});
+
+builder.inputType('PostOrderByInput', {
+  fields: (t) => ({
+    createdAt: t.field({ type: 'OrderDirection' }),
+    updatedAt: t.field({ type: 'OrderDirection' }),
+    title: t.field({ type: 'OrderDirection' }),
+  }),
+});
+
 builder.queryType({
   fields: (t) => ({
     me: t.prismaField({
@@ -100,6 +113,7 @@ builder.queryType({
         take: t.arg.int(),
         skip: t.arg.int(),
         categoryId: t.arg.string(),
+        orderBy: t.arg({ type: 'PostOrderByInput' }),
       },
       resolve: async (query, root, args, ctx) => {
         return ctx.prisma.post.findMany({
@@ -110,7 +124,7 @@ builder.queryType({
           },
           take: args.take ?? undefined,
           skip: args.skip ?? 0,
-          orderBy: { createdAt: 'desc' },
+          orderBy: args.orderBy ?? { createdAt: 'desc' },
         });
       },
     }),

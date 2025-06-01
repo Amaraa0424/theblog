@@ -197,27 +197,7 @@ builder.mutationType({
       },
     }),
 
-    likePost: t.prismaField({
-      type: 'Like',
-      args: {
-        postId: t.arg.string({ required: true }),
-      },
-      resolve: async (query, root, args, ctx) => {
-        if (!ctx.userId) {
-          throw new Error('Not authenticated');
-        }
-
-        return ctx.prisma.like.create({
-          ...query,
-          data: {
-            postId: args.postId,
-            userId: ctx.userId,
-          },
-        });
-      },
-    }),
-
-    unlikePost: t.prismaField({
+    toggleLike: t.prismaField({
       type: 'Post',
       args: {
         postId: t.arg.string({ required: true }),
@@ -227,7 +207,8 @@ builder.mutationType({
           throw new Error('Not authenticated');
         }
 
-        await ctx.prisma.like.delete({
+        // Check if the user has already liked the post
+        const existingLike = await ctx.prisma.like.findUnique({
           where: {
             postId_userId: {
               postId: args.postId,
@@ -236,6 +217,27 @@ builder.mutationType({
           },
         });
 
+        if (existingLike) {
+          // Unlike if already liked
+          await ctx.prisma.like.delete({
+            where: {
+              postId_userId: {
+                postId: args.postId,
+                userId: ctx.userId,
+              },
+            },
+          });
+        } else {
+          // Like if not already liked
+          await ctx.prisma.like.create({
+            data: {
+              postId: args.postId,
+              userId: ctx.userId,
+            },
+          });
+        }
+
+        // Return the updated post
         return ctx.prisma.post.findUnique({
           ...query,
           where: { id: args.postId },

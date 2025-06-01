@@ -1,5 +1,3 @@
-'use client';
-
 import { hash } from 'bcryptjs';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { NextAuthOptions } from 'next-auth';

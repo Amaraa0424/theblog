@@ -8,7 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 const GET_COMMENTS = gql`
-  query GetComments($postId: ID!) {
+  query GetComments($postId: String!) {
     post(id: $postId) {
       comments {
         id

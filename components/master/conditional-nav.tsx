@@ -103,13 +103,13 @@ export default function ConditionalNav({
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center">
+                    <Link href="/profile" className="flex w-full items-center">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings" className="flex items-center">
+                    <Link href="/settings" className="flex w-full items-center">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </Link>
