@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { Comments } from '@/components/Comments';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareButton } from '@/components/ShareButton';
+import { RichTextReadOnly } from '@/components/RichTextReadOnly';
 import Image from 'next/image';
 
 const GET_POST = gql`
@@ -44,7 +45,7 @@ export default function PostPage() {
   const post = data?.post;
 
   return (
-    <article className="max-w-4xl mx-auto py-8">
+    <article className="max-w-4xl mx-auto py-8 px-4">
       <header className="mb-8">
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         {post.subtitle && (
@@ -76,10 +77,7 @@ export default function PostPage() {
         </div>
       )}
 
-      <div 
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: post.content }}
-      />
+      <RichTextReadOnly content={post.content} />
 
       <div className="mt-16">
         <Comments postId={post.id} />

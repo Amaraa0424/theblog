@@ -16,6 +16,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 interface Post {
   id: string;
   title: string;
+  subtitle?: string;
   content: string;
   published: boolean;
   image?: string;
@@ -33,6 +34,7 @@ const UPDATE_POST_MUTATION = gql`
   mutation UpdatePost(
     $id: String!
     $title: String!
+    $subtitle: String
     $content: String!
     $published: Boolean!
     $categoryId: String!
@@ -41,6 +43,7 @@ const UPDATE_POST_MUTATION = gql`
     updatePost(
       id: $id
       title: $title
+      subtitle: $subtitle
       content: $content
       published: $published
       categoryId: $categoryId
@@ -48,6 +51,7 @@ const UPDATE_POST_MUTATION = gql`
     ) {
       id
       title
+      subtitle
       content
       published
       image
@@ -66,6 +70,7 @@ export function PostForm({ post }: PostFormProps) {
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
       title: post.title,
+      subtitle: post.subtitle || '',
       published: post.published,
       categoryId: post.category.id,
       image: post.image || '',
@@ -74,6 +79,7 @@ export function PostForm({ post }: PostFormProps) {
 
   const onSubmit = async (formData: {
     title: string;
+    subtitle?: string;
     published: boolean;
     categoryId: string;
     image?: string;
@@ -83,6 +89,7 @@ export function PostForm({ post }: PostFormProps) {
         variables: {
           id: post.id,
           title: formData.title,
+          subtitle: formData.subtitle || null,
           content,
           published: Boolean(formData.published),
           categoryId: formData.categoryId,
@@ -116,6 +123,15 @@ export function PostForm({ post }: PostFormProps) {
           {errors.title && (
             <p className="text-red-500 text-sm">{errors.title.message}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subtitle">Subtitle (Optional)</Label>
+          <Input
+            id="subtitle"
+            {...register('subtitle')}
+            placeholder="A brief description of your post"
+          />
         </div>
 
         <div className="space-y-2">

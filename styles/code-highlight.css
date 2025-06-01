@@ -1,0 +1,82 @@
+/* VS Code-like syntax highlighting */
+.hljs {
+  @apply bg-muted/50 text-foreground;
+}
+
+.hljs-comment,
+.hljs-quote {
+  @apply text-muted-foreground italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-addition {
+  @apply text-pink-500 dark:text-pink-400;
+}
+
+.hljs-number,
+.hljs-string,
+.hljs-meta .hljs-meta-string,
+.hljs-literal,
+.hljs-doctag,
+.hljs-regexp {
+  @apply text-emerald-500 dark:text-emerald-400;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  @apply text-blue-500 dark:text-blue-400;
+}
+
+.hljs-attribute,
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-class .hljs-title,
+.hljs-type {
+  @apply text-orange-500 dark:text-orange-400;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-subst,
+.hljs-meta,
+.hljs-meta .hljs-keyword,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-link {
+  @apply text-purple-500 dark:text-purple-400;
+}
+
+.hljs-built_in,
+.hljs-deletion {
+  @apply text-red-500 dark:text-red-400;
+}
+
+.hljs-formula {
+  @apply bg-muted;
+}
+
+.hljs-emphasis {
+  @apply italic;
+}
+
+.hljs-strong {
+  @apply font-bold;
+}
+
+/* Code block container styles */
+.code-block {
+  @apply relative rounded-lg bg-muted/50 font-mono text-sm;
+}
+
+.code-block pre {
+  @apply p-4 overflow-x-auto;
+}
+
+.code-block select {
+  @apply absolute right-2 top-2 z-10;
+} 

@@ -16,6 +16,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
+  subtitle: z.string().optional(),
   content: z.string().min(1, 'Content is required'),
   categoryId: z.string().min(1, 'Category is required'),
   image: z.string().min(1, 'Image is required'),
@@ -31,10 +32,23 @@ const GET_CATEGORIES = gql`
 `;
 
 const CREATE_POST = gql`
-  mutation CreatePost($input: CreatePostInput!) {
-    createPost(input: $input) {
+  mutation CreatePost(
+    $title: String!
+    $subtitle: String
+    $content: String!
+    $categoryId: String!
+    $image: String
+  ) {
+    createPost(
+      title: $title
+      subtitle: $subtitle
+      content: $content
+      categoryId: $categoryId
+      image: $image
+    ) {
       id
       title
+      subtitle
       content
       image
       category {
@@ -70,6 +84,7 @@ export default function NewPostPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
+      subtitle: '',
       content: '',
       categoryId: '',
       image: '',
@@ -79,7 +94,11 @@ export default function NewPostPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createPost({
       variables: {
-        input: values,
+        title: values.title,
+        subtitle: values.subtitle || null,
+        content: values.content,
+        categoryId: values.categoryId,
+        image: values.image || null,
       },
     });
   };
@@ -96,6 +115,20 @@ export default function NewPostPage() {
                 <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input placeholder="Post title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="subtitle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Subtitle (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="A brief description of your post" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
