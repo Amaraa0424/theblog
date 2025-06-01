@@ -6,8 +6,6 @@ import { Toaster } from 'sonner';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { Navbar } from '@/components/Navbar';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
