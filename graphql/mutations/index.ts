@@ -1,7 +1,6 @@
 import { builder } from '../../lib/builder';
 import { hashPassword, verifyPassword, generateToken, generateVerificationToken } from '../../lib/auth-utils';
 import { addDays } from 'date-fns';
-import { prisma } from '@/lib/prisma';
 
 builder.mutationType({
   fields: (t) => ({
@@ -72,6 +71,16 @@ builder.mutationType({
             referrer,
             success: true
           }
+        });
+
+        // Track IP address
+        await ctx.prisma.userIpAddress.create({
+          data: {
+            ipAddress,
+            userAgent,
+            userId: user.id,
+            isGuest: false,
+          },
         });
 
         return generateToken({ id: user.id, isAdmin: user.role === 'ADMIN' });
@@ -397,7 +406,7 @@ builder.mutationType({
 
         try {
           // Create view record
-          await prisma.view.create({
+          await ctx.prisma.view.create({
             data: {
               post: { connect: { id } },
               ipAddress,
@@ -406,19 +415,82 @@ builder.mutationType({
             },
           });
 
+          // Track IP address
+          await ctx.prisma.userIpAddress.upsert({
+            where: {
+              ipAddress_userId: {
+                ipAddress,
+                userId: ctx.userId || null
+              }
+            },
+            update: {
+              lastSeenAt: new Date(),
+              userAgent,
+            },
+            create: {
+              ipAddress,
+              userAgent,
+              userId: ctx.userId || null,
+              isGuest: !ctx.userId,
+            },
+          });
+
           // Return updated post
-          return prisma.post.findUniqueOrThrow({
+          return ctx.prisma.post.findUniqueOrThrow({
             ...query,
             where: { id },
           });
         } catch (error) {
           console.error('Error incrementing view:', error);
           // Still return the post even if view tracking fails
-          return prisma.post.findUniqueOrThrow({
+          return ctx.prisma.post.findUniqueOrThrow({
             ...query,
             where: { id },
           });
         }
+      },
+    }),
+
+    trackIpAddress: t.prismaField({
+      type: 'UserIpAddress',
+      args: {
+        ipAddress: t.arg.string({ required: true }),
+        userAgent: t.arg.string({ required: true }),
+      },
+      resolve: async (query, root, args, ctx) => {
+        const { ipAddress, userAgent } = args;
+        const userId = ctx.userId;
+
+        // Find existing record for this IP and user combination
+        const existingRecord = await ctx.prisma.userIpAddress.findFirst({
+          where: {
+            ipAddress,
+            userId: userId || null,
+          },
+        });
+
+        if (existingRecord) {
+          // Update lastSeenAt if record exists
+          return ctx.prisma.userIpAddress.update({
+            ...query,
+            where: { id: existingRecord.id },
+            data: {
+              lastSeenAt: new Date(),
+              userAgent, // Update user agent in case it changed
+            },
+          });
+        }
+
+        // Create new record if none exists
+        return ctx.prisma.userIpAddress.create({
+          ...query,
+          data: {
+            ipAddress,
+            userAgent,
+            userId: userId || null,
+            isGuest: !userId,
+          },
+        });
       },
     }),
   }),

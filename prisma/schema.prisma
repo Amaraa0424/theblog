@@ -33,6 +33,7 @@ model User {
   likes             Like[]
   sessions          Session[]
   loginAttempts     LoginAttempt[]
+  ipAddresses       UserIpAddress[]
   verificationToken VerificationToken?
   resetToken        ResetToken?
   createdAt         DateTime    @default(now())
@@ -157,6 +158,22 @@ model LoginAttempt {
   referrer      String?
   success       Boolean   @default(true)
   createdAt     DateTime  @default(now())
+}
+
+model UserIpAddress {
+  id            String    @id @default(uuid())
+  ipAddress     String
+  userAgent     String
+  user          User?     @relation(fields: [userId], references: [id])
+  userId        String?
+  isGuest       Boolean   @default(false)
+  lastSeenAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([ipAddress, userId])
+  @@index([ipAddress])
+  @@index([userId])
 }
 
 enum Role {

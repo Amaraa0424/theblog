@@ -9,4 +9,5 @@ export * from './Share';     // Depends on User, Post
 export * from './Like';      // Depends on User, Post
 export * from './Session';   // Depends on User
 export * from './VerificationToken'; // Depends on User
-export * from './ResetToken';       // Depends on User 
+export * from './ResetToken';       // Depends on User
+export * from './UserIpAddress';    // Depends on User 
