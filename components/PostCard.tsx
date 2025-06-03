@@ -16,6 +16,7 @@ interface PostCardProps {
     content: string;
     image?: string | null;
     createdAt: string;
+    viewCount: number;
     likes: {
       id: string;
       user: {
@@ -81,6 +82,8 @@ export function PostCard({ post }: PostCardProps) {
             <time dateTime={post.createdAt}>
               {format(new Date(post.createdAt), 'MMM d, yyyy')}
             </time>
+            <span className="mx-2">•</span>
+            <span>{post.viewCount} views</span>
           </div>
           <div className="flex items-center gap-2">
             <LikeButton 

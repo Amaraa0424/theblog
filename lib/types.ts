@@ -1,3 +1,13 @@
+import { PrismaClient } from '@prisma/client';
+import { NextRequest } from 'next/server';
+
+export interface Context {
+  prisma: PrismaClient;
+  userId?: string;
+  isAdmin?: boolean;
+  req?: NextRequest;
+}
+
 export interface Post {
   id: string;
   title: string;
@@ -21,6 +31,7 @@ export interface Post {
       id: string;
     };
   }[];
+  viewCount?: number;
 }
 
 export interface Category {

@@ -1,6 +1,7 @@
 import { builder } from '../../lib/builder';
 import { hashPassword, verifyPassword, generateToken, generateVerificationToken, generateResetToken } from '../../lib/auth-utils';
 import { addDays } from 'date-fns';
+import { prisma } from '@/lib/prisma';
 
 builder.mutationType({
   fields: (t) => ({
@@ -360,6 +361,48 @@ builder.mutationType({
             password: hashedPassword,
           },
         });
+      },
+    }),
+
+    incrementPostView: t.prismaField({
+      type: 'Post',
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (query, _parent, { id }, ctx) => {
+        // Get client IP and user agent from headers
+        const headers = ctx.req?.headers || new Headers();
+        const forwarded = headers.get('x-forwarded-for');
+        const ipAddress = forwarded ? 
+                         forwarded.split(',')[0] : 
+                         headers.get('x-real-ip') || 'unknown';
+        const userAgent = headers.get('user-agent') || 'unknown';
+        const referrer = headers.get('referer') || null;
+
+        try {
+          // Create view record
+          await prisma.view.create({
+            data: {
+              post: { connect: { id } },
+              ipAddress,
+              userAgent,
+              referrer,
+            },
+          });
+
+          // Return updated post
+          return prisma.post.findUniqueOrThrow({
+            ...query,
+            where: { id },
+          });
+        } catch (error) {
+          console.error('Error incrementing view:', error);
+          // Still return the post even if view tracking fails
+          return prisma.post.findUniqueOrThrow({
+            ...query,
+            where: { id },
+          });
+        }
       },
     }),
   }),

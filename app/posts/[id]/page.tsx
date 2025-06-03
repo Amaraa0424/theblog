@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { Comments } from '@/components/Comments';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareButton } from '@/components/ShareButton';
+import { ViewCounter } from '@/components/ViewCounter';
 import { RichTextReadOnly } from '@/components/RichTextReadOnly';
 import Image from 'next/image';
 
@@ -27,6 +28,7 @@ const GET_POST = gql`
       image
       published
       createdAt
+      viewCount
       likes {
         id
         user {
@@ -55,6 +57,7 @@ export default function PostPage() {
 
   return (
     <article className="max-w-4xl mx-auto py-8 px-4">
+      <ViewCounter postId={post.id} />
       <header className="mb-8">
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         {post.subtitle && (
@@ -67,6 +70,8 @@ export default function PostPage() {
             <time dateTime={post.createdAt}>
               {format(new Date(post.createdAt), 'MMMM d, yyyy')}
             </time>
+            <span className="mx-2">•</span>
+            <span>{post.viewCount} views</span>
           </div>
           <div className="flex items-center gap-2">
             <LikeButton 

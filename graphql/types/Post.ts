@@ -1,4 +1,5 @@
 import { builder } from '../../lib/builder';
+import { prisma } from '@/lib/prisma';
 
 builder.prismaObject('Post', {
   fields: (t) => ({
@@ -12,6 +13,15 @@ builder.prismaObject('Post', {
     category: t.relation('category'),
     comments: t.relation('comments'),
     views: t.relation('views'),
+    viewCount: t.field({
+      type: 'Int',
+      resolve: async (parent) => {
+        const count = await prisma.view.count({
+          where: { postId: parent.id },
+        });
+        return count;
+      },
+    }),
     tags: t.relation('tags'),
     shares: t.relation('shares'),
     likes: t.relation('likes'),
