@@ -110,7 +110,16 @@ interface Post {
 export default function Dashboard() {
   const router = useRouter();
   const { status } = useSession();
-  const { data, loading, error } = useQuery(USER_DASHBOARD_DATA);
+  const { data, loading, error } = useQuery(USER_DASHBOARD_DATA, {
+    onError: (error) => {
+      console.error('GraphQL Error:', error);
+      console.error('GraphQL Error Details:', {
+        message: error.message,
+        networkError: error.networkError,
+        graphQLErrors: error.graphQLErrors,
+      });
+    }
+  });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
