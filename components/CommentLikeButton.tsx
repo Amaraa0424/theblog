@@ -4,17 +4,17 @@ import { useState, useOptimistic, useTransition } from 'react';
 import { useSession } from 'next-auth/react';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toggleLike } from '@/app/actions/post';
+import { toggleCommentLike } from '@/app/actions/post';
 import { toast } from 'sonner';
 import { signIn } from 'next-auth/react';
 
-interface LikeButtonProps {
-  postId: string;
+interface CommentLikeButtonProps {
+  commentId: string;
   initialLikes: number;
   initialLiked: boolean;
 }
 
-export function LikeButton({ postId, initialLikes, initialLiked }: LikeButtonProps) {
+export function CommentLikeButton({ commentId, initialLikes, initialLiked }: CommentLikeButtonProps) {
   const { data: session } = useSession();
   const [likeCount, setLikeCount] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(initialLiked);
@@ -32,7 +32,7 @@ export function LikeButton({ postId, initialLikes, initialLiked }: LikeButtonPro
 
   const handleLike = async () => {
     if (!session?.user) {
-      toast.error("Please sign in to like posts");
+      toast.error("Please sign in to like comments");
       signIn();
       return;
     }
@@ -47,7 +47,7 @@ export function LikeButton({ postId, initialLikes, initialLiked }: LikeButtonPro
       });
 
       // Perform actual like/unlike action
-      const newIsLiked = await toggleLike(postId, session.user.id);
+      const newIsLiked = await toggleCommentLike(commentId, session.user.id);
       
       // Update actual state
       setLikeCount(prev => prev + (newIsLiked ? 1 : -1));
@@ -66,15 +66,15 @@ export function LikeButton({ postId, initialLikes, initialLiked }: LikeButtonPro
     <Button
       variant="ghost"
       size="sm"
-      className="gap-2"
+      className="gap-1 h-auto p-1"
       onClick={handleLike}
       disabled={isPending}
     >
       <Heart
         className={optimisticIsLiked ? "fill-current text-red-500" : ""}
-        size={20}
+        size={14}
       />
-      <span>{optimisticLikeCount}</span>
+      <span className="text-xs">{optimisticLikeCount}</span>
     </Button>
   );
 } 

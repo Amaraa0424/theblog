@@ -39,6 +39,35 @@ const GET_POST = gql`
         id
         name
       }
+      comments {
+        id
+        content
+        createdAt
+        parentId
+        likesCount
+        CommentLike {
+          id
+          userId
+        }
+        author {
+          id
+          name
+        }
+        replies {
+          id
+          content
+          createdAt
+          likesCount
+          CommentLike {
+            id
+            userId
+          }
+          author {
+            id
+            name
+          }
+        }
+      }
     }
   }
 `;
@@ -98,7 +127,7 @@ export default function PostPage() {
       <RichTextReadOnly content={post.content} />
 
       <div className="mt-16">
-        <Comments postId={post.id} />
+        <Comments postId={post.id} initialComments={post.comments} />
       </div>
     </article>
   );

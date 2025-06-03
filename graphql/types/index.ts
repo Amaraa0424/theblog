@@ -4,6 +4,7 @@ export * from './Tag';       // No dependencies
 export * from './User';      // No dependencies
 export * from './Post';      // Depends on User, Category, Tag
 export * from './Comment';   // Depends on User, Post
+export * from './CommentLike'; // Depends on Comment, User
 export * from './View';      // Depends on Post
 export * from './Share';     // Depends on User, Post
 export * from './Like';      // Depends on User, Post

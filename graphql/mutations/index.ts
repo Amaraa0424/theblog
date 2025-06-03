@@ -194,24 +194,10 @@ builder.mutationType({
       args: {
         postId: t.arg.string({ required: true }),
         content: t.arg.string({ required: true }),
-        guestName: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
-        // If user is authenticated, create comment with author
-        if (ctx.userId) {
-          return ctx.prisma.comment.create({
-            ...query,
-            data: {
-              content: args.content,
-              postId: args.postId,
-              authorId: ctx.userId,
-            },
-          });
-        }
-        
-        // If no user is authenticated, require guestName
-        if (!args.guestName) {
-          throw new Error('Guest name is required for unauthenticated comments');
+        if (!ctx.userId) {
+          throw new Error('Authentication required to comment');
         }
 
         return ctx.prisma.comment.create({
@@ -219,7 +205,7 @@ builder.mutationType({
           data: {
             content: args.content,
             postId: args.postId,
-            guestName: args.guestName,
+            authorId: ctx.userId,
           },
         });
       },
