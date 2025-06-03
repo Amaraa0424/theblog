@@ -28,6 +28,10 @@ const config: NextConfig = {
         protocol: 'https',
         hostname: 'api.dicebear.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
     ],
     domains: ['localhost'],
   },

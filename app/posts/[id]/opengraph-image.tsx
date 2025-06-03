@@ -2,83 +2,96 @@ import { ImageResponse } from 'next/og';
 import { getClient } from '@/lib/apollo-server';
 import { gql } from '@apollo/client';
 
-export const runtime = 'edge';
-export const contentType = 'image/png';
-export const size = {
-  width: 1200,
-  height: 630,
-};
-
-const GET_POST = gql`
-  query GetPost($id: String!) {
+const GET_POST_IMAGE = gql`
+  query GetPostImage($id: String!) {
     post(id: $id) {
+      image
       title
-      subtitle
-      author {
-        name
-      }
     }
   }
 `;
 
-export default async function OG({ params }: { params: { id: string } }) {
+export const runtime = 'edge';
+export const alt = 'Blog Post Image';
+export const size = {
+  width: 1200,
+  height: 630,
+};
+export const contentType = 'image/png';
+
+export default async function Image({ params }: { params: { id: string } }) {
   try {
     const { data } = await getClient().query({
-      query: GET_POST,
+      query: GET_POST_IMAGE,
       variables: { id: params.id },
     });
 
-    const post = data.post;
-    const title = post.title;
-    const subtitle = post.subtitle || '';
-    const author = post.author.name;
+    if (!data?.post?.image) {
+      // Fallback to a default image if no post image is available
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              background: 'linear-gradient(to bottom, #000000, #1a1a1a)',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '40px',
+            }}
+          >
+            <div
+              style={{
+                color: 'white',
+                fontSize: '60px',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                marginBottom: '20px',
+              }}
+            >
+              {data?.post?.title || 'Blog Post'}
+            </div>
+          </div>
+        ),
+        {
+          ...size,
+          fonts: [
+            {
+              name: 'Inter',
+              data: await fetch(
+                new URL('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap')
+              ).then((res) => res.arrayBuffer()),
+              style: 'normal',
+              weight: 700,
+            },
+          ],
+        }
+      );
+    }
 
+    // Return an image with the post's actual image
     return new ImageResponse(
       (
         <div
           style={{
-            background: 'linear-gradient(to bottom right, #5a67d8, #4c51bf)',
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-end',
-            padding: '48px',
+            position: 'relative',
           }}
         >
-          <div
+          
+          <img
+            src={data.post.image}
+            alt={data.post.title}
             style={{
-              fontSize: 48,
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: 16,
-              maxWidth: '80%',
-              lineHeight: 1.2,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
             }}
-          >
-            {title}
-          </div>
-          {subtitle && (
-            <div
-              style={{
-                fontSize: 24,
-                color: 'rgba(255, 255, 255, 0.9)',
-                marginBottom: 24,
-                maxWidth: '70%',
-              }}
-            >
-              {subtitle}
-            </div>
-          )}
-          <div
-            style={{
-              fontSize: 20,
-              color: 'rgba(255, 255, 255, 0.8)',
-            }}
-          >
-            By {author} · TheBlog
-          </div>
+          />
         </div>
       ),
       {
@@ -86,39 +99,24 @@ export default async function OG({ params }: { params: { id: string } }) {
       }
     );
   } catch (error) {
-    // Fallback OG image
+    console.error('Error generating OG image:', error);
+    // Return a fallback error image
     return new ImageResponse(
       (
         <div
           style={{
-            background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
+            background: '#ef4444',
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '48px',
+            color: 'white',
+            fontSize: '48px',
+            fontWeight: 'bold',
           }}
         >
-          <div
-            style={{
-              fontSize: 48,
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: 24,
-            }}
-          >
-            Post Not Found
-          </div>
-          <div
-            style={{
-              fontSize: 24,
-              color: 'rgba(255, 255, 255, 0.9)',
-            }}
-          >
-            TheBlog
-          </div>
+          Error Loading Image
         </div>
       ),
       {

@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description =
       post.subtitle ||
       post.content.replace(/<[^>]*>/g, "").slice(0, 200) + "...";
-    const defaultOgImage = `https://theblog-indol.vercel.app/images/logo.jpg`;
+    const defaultOgImage = `/images/logo.jpg`;
 
     return {
       title: post.title,
