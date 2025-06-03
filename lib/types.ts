@@ -6,6 +6,7 @@ export interface Context {
   userId?: string;
   isAdmin?: boolean;
   req?: NextRequest;
+  headers?: Record<string, string>;
 }
 
 export interface Post {

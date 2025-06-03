@@ -1,5 +1,5 @@
 import { builder } from '../../lib/builder';
-import { hashPassword, verifyPassword, generateToken, generateVerificationToken, generateResetToken } from '../../lib/auth-utils';
+import { hashPassword, verifyPassword, generateToken, generateVerificationToken } from '../../lib/auth-utils';
 import { addDays } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 
@@ -56,7 +56,25 @@ builder.mutationType({
           throw new Error('Invalid credentials');
         }
 
-        return generateToken(user.id, user.role === 'ADMIN');
+        // Get client IP and user agent from headers
+        const ipAddress = ctx.headers?.['x-forwarded-for']?.split(',')[0] || 
+                         ctx.headers?.['x-real-ip'] || 
+                         'unknown';
+        const userAgent = ctx.headers?.['user-agent'] || 'unknown';
+        const referrer = ctx.headers?.['referer'] || null;
+
+        // Save login attempt
+        await ctx.prisma.loginAttempt.create({
+          data: {
+            userId: user.id,
+            ipAddress,
+            userAgent,
+            referrer,
+            success: true
+          }
+        });
+
+        return generateToken({ id: user.id, isAdmin: user.role === 'ADMIN' });
       },
     }),
 
@@ -371,13 +389,11 @@ builder.mutationType({
       },
       resolve: async (query, _parent, { id }, ctx) => {
         // Get client IP and user agent from headers
-        const headers = ctx.req?.headers || new Headers();
-        const forwarded = headers.get('x-forwarded-for');
-        const ipAddress = forwarded ? 
-                         forwarded.split(',')[0] : 
-                         headers.get('x-real-ip') || 'unknown';
-        const userAgent = headers.get('user-agent') || 'unknown';
-        const referrer = headers.get('referer') || null;
+        const ipAddress = ctx.headers?.['x-forwarded-for']?.split(',')[0] || 
+                         ctx.headers?.['x-real-ip'] || 
+                         'unknown';
+        const userAgent = ctx.headers?.['user-agent'] || 'unknown';
+        const referrer = ctx.headers?.['referer'] || null;
 
         try {
           // Create view record

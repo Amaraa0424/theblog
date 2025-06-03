@@ -20,14 +20,18 @@ const { handleRequest } = createYoga({
         prisma,
         userId: token?.id as string | undefined,
         isAdmin: token?.role === 'ADMIN',
+        req: request,
+        headers: Object.fromEntries(request.headers.entries())
       };
     } catch (error) {
       console.error('Error getting token:', error);
-    return {
-      prisma,
+      return {
+        prisma,
         userId: undefined,
         isAdmin: false,
-    };
+        req: request,
+        headers: Object.fromEntries(request.headers.entries())
+      };
     }
   },
 });

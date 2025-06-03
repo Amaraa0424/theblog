@@ -32,6 +32,7 @@ model User {
   sharedWithMe      Share[]     @relation("SharedWith")
   likes             Like[]
   sessions          Session[]
+  loginAttempts     LoginAttempt[]
   verificationToken VerificationToken?
   resetToken        ResetToken?
   createdAt         DateTime    @default(now())
@@ -145,6 +146,17 @@ model Category {
   posts         Post[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model LoginAttempt {
+  id            String    @id @default(uuid())
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+  ipAddress     String
+  userAgent     String
+  referrer      String?
+  success       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
 }
 
 enum Role {
