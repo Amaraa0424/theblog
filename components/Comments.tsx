@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useOptimistic, useTransition } from 'react';
-import { useSession } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
-import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { signIn } from 'next-auth/react';
-import { createComment } from '@/app/actions/post';
-import { CommentLikeButton } from './CommentLikeButton';
-import { MessageSquare } from 'lucide-react';
+import { useState, useOptimistic, useTransition, startTransition } from "react";
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { signIn } from "next-auth/react";
+import { createComment } from "@/app/actions/post";
+import { CommentLikeButton } from "./CommentLikeButton";
+import { MessageSquare } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -40,16 +40,32 @@ interface CommentFormData {
   content: string;
 }
 
-function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; postId: string; level?: number }) {
+function CommentComponent({
+  comment,
+  postId,
+  level = 0,
+}: {
+  comment: Comment;
+  postId: string;
+  level?: number;
+}) {
   const { data: session } = useSession();
   const [isReplying, setIsReplying] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CommentFormData>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CommentFormData>();
   const [isPending, startTransition] = useTransition();
   const [replies, setReplies] = useState<Comment[]>(comment.replies || []);
-  const [optimisticReplies, addOptimisticReply] = useOptimistic<Comment[], Comment>(
-    replies,
-    (state, newReply) => [...state, newReply].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  const [optimisticReplies, addOptimisticReply] = useOptimistic<
+    Comment[],
+    Comment
+  >(replies, (state, newReply) =>
+    [...state, newReply].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
   );
 
@@ -69,7 +85,7 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
       CommentLike: [],
       author: {
         id: session.user.id,
-        name: session.user.name || 'Anonymous',
+        name: session.user.name || "Anonymous",
       },
     };
 
@@ -96,23 +112,30 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
           CommentLike: [],
           author: {
             id: session.user.id,
-            name: result.author.name || 'Anonymous'
-          }
+            name: result.author.name || "Anonymous",
+          },
         };
 
-        setReplies(prevReplies => 
-          [...prevReplies.filter(r => r.id !== tempReply.id), actualReply]
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        setReplies((prevReplies) =>
+          [
+            ...prevReplies.filter((r) => r.id !== tempReply.id),
+            actualReply,
+          ].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
         );
 
         setIsReplying(false);
         reset();
       });
     } catch (error) {
-      console.error('Failed to add reply:', error);
+      console.error("Failed to add reply:", error);
       toast.error("Failed to add reply");
       // Remove the optimistic reply if there was an error
-      setReplies(prevReplies => prevReplies.filter(r => r.id !== tempReply.id));
+      setReplies((prevReplies) =>
+        prevReplies.filter((r) => r.id !== tempReply.id)
+      );
     }
   };
 
@@ -120,11 +143,11 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
     <div className={cn("space-y-4", level > 0 && "ml-6")}>
       <div className="border rounded-lg p-4 bg-card">
         <div className="flex items-center gap-2 mb-2">
-          <span className="font-medium text-sm">
-            {comment.author.name}
-          </span>
+          <span className="font-medium text-sm">{comment.author.name}</span>
           <span className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+            {formatDistanceToNow(new Date(comment.createdAt), {
+              addSuffix: true,
+            })}
           </span>
         </div>
         <p className="text-foreground mb-3">{comment.content}</p>
@@ -132,7 +155,9 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
           <CommentLikeButton
             commentId={comment.id}
             initialLikes={comment.likesCount}
-            initialLiked={comment.CommentLike.some(like => like.userId === session?.user?.id)}
+            initialLiked={comment.CommentLike.some(
+              (like) => like.userId === session?.user?.id
+            )}
           />
           <Button
             variant="ghost"
@@ -146,21 +171,24 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
         </div>
 
         {isReplying && (
-          <form onSubmit={handleSubmit(onSubmitReply)} className="mt-4 space-y-4">
+          <form
+            onSubmit={handleSubmit(onSubmitReply)}
+            className="mt-4 space-y-4"
+          >
             <Textarea
-              {...register('content', { required: true })}
-              className={cn(errors.content && 'border-destructive')}
+              {...register("content", { required: true })}
+              className={cn(errors.content && "border-destructive")}
               placeholder="Write a reply..."
               disabled={isPending}
             />
             <div className="flex gap-2">
               <Button type="submit" size="sm" disabled={isPending}>
-                {isPending ? 'Posting...' : 'Post Reply'}
+                {isPending ? "Posting..." : "Post Reply"}
               </Button>
-              <Button 
-                type="button" 
-                size="sm" 
-                variant="outline" 
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
                 onClick={() => {
                   setIsReplying(false);
                   reset();
@@ -191,24 +219,35 @@ function CommentComponent({ comment, postId, level = 0 }: { comment: Comment; po
 
 export function Comments({ postId, initialComments = [] }: CommentsProps) {
   const { data: session } = useSession();
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CommentFormData>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CommentFormData>();
   // Sort initial comments by date (newest first) and filter out replies
   const [comments, setComments] = useState<Comment[]>(
     [...initialComments]
-      .filter(comment => !comment.parentId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .filter((comment) => !comment.parentId)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
   );
   const [isPending] = useTransition();
-  
-  const [optimisticComments, addOptimisticComment] = useOptimistic<Comment[], Comment>(
-    comments,
-    (state, newComment) => {
-      const updatedComments = [...state, newComment];
-      return updatedComments
-        .filter(comment => !comment.parentId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-  );
+
+  const [optimisticComments, addOptimisticComment] = useOptimistic<
+    Comment[],
+    Comment
+  >(comments, (state, newComment) => {
+    const updatedComments = [...state, newComment];
+    return updatedComments
+      .filter((comment) => !comment.parentId)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+  });
 
   const onSubmit = async (formData: CommentFormData) => {
     if (!session?.user) {
@@ -225,59 +264,63 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
       CommentLike: [],
       author: {
         id: session.user.id,
-        name: session.user.name || 'Anonymous',
+        name: session.user.name || "Anonymous",
       },
     };
 
-    try {
-      addOptimisticComment(tempComment);
-      
-      const result = await createComment(
-        postId,
-        formData.content,
-        session.user.id
-      );
+    startTransition(async () => {
+      try {
+        addOptimisticComment(tempComment);
 
-      // Update both states with the actual comment
-      const actualComment: Comment = {
-        id: result.id,
-        content: result.content,
-        createdAt: result.createdAt.toISOString(),
-        likesCount: 0,
-        CommentLike: [],
-        author: {
-          id: session.user.id,
-          name: result.author.name || 'Anonymous'
-        }
-      };
+        const result = await createComment(
+          postId,
+          formData.content,
+          session.user.id
+        );
 
-      setComments(prev => 
-        [...prev.filter(c => c.id !== tempComment.id), actualComment]
-          .filter(comment => !comment.parentId)
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      );
+        // Update both states with the actual comment
+        const actualComment: Comment = {
+          id: result.id,
+          content: result.content,
+          createdAt: result.createdAt.toISOString(),
+          likesCount: 0,
+          CommentLike: [],
+          author: {
+            id: session.user.id,
+            name: result.author.name || "Anonymous",
+          },
+        };
 
-      reset();
-    } catch (error: unknown) {
-      console.error('Failed to add comment:', error);
-      toast.error("Failed to add comment");
-      setComments(prev => prev.filter(comment => comment.id !== tempComment.id));
-    }
+        setComments((prev) =>
+          [...prev.filter((c) => c.id !== tempComment.id), actualComment]
+            .filter((comment) => !comment.parentId)
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            )
+        );
+
+        reset();
+      } catch (error: unknown) {
+        console.error("Failed to add comment:", error);
+        toast.error("Failed to add comment");
+        setComments((prev) =>
+          prev.filter((comment) => comment.id !== tempComment.id)
+        );
+      }
+    });
   };
 
   return (
     <div className="space-y-8">
       <div className="border rounded-lg p-6 bg-card">
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
-        
+
         {!session ? (
           <div className="text-center py-4">
             <p className="text-muted-foreground">Please sign in to comment</p>
-            <Button
-              variant="outline"
-              onClick={() => signIn()}
-              className="mt-2"
-            >
+            <Button variant="outline" onClick={() => signIn()} className="mt-2">
               Sign In
             </Button>
           </div>
@@ -287,8 +330,8 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
               <Label htmlFor="content">Your comment</Label>
               <Textarea
                 id="content"
-                {...register('content', { required: true })}
-                className={cn(errors.content && 'border-destructive')}
+                {...register("content", { required: true })}
+                className={cn(errors.content && "border-destructive")}
                 disabled={isPending}
               />
               {errors.content && (
@@ -298,7 +341,7 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
               )}
             </div>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Posting...' : 'Post Comment'}
+              Post Comment
             </Button>
           </form>
         )}
@@ -314,9 +357,11 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
             />
           ))
         ) : (
-          <p className="text-muted-foreground">No comments yet. Be the first to comment!</p>
+          <p className="text-muted-foreground">
+            No comments yet. Be the first to comment!
+          </p>
         )}
       </div>
     </div>
   );
-} 
+}
