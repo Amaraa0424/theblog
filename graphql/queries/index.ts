@@ -101,18 +101,53 @@ builder.queryType({
         categoryId: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
+        // Log context information in production (remove in actual production)
+        if (process.env.NODE_ENV === 'production') {
+          console.log('userPosts resolver context:', {
+            hasUserId: !!ctx.userId,
+            headers: ctx.headers,
+          });
+        }
+
         if (!ctx.userId) {
+          // Log authentication failure in production
+          if (process.env.NODE_ENV === 'production') {
+            console.error('Authentication failed in userPosts:', {
+              headers: ctx.headers,
+              userId: ctx.userId,
+            });
+          }
           throw new Error('Not authenticated');
         }
 
-        return ctx.prisma.post.findMany({
-          ...query,
-          where: { 
-            authorId: ctx.userId,
-            ...(args.categoryId ? { categoryId: args.categoryId } : {}),
-          },
-          orderBy: { createdAt: 'desc' },
-        });
+        try {
+          const posts = await ctx.prisma.post.findMany({
+            ...query,
+            where: { 
+              authorId: ctx.userId,
+              ...(args.categoryId ? { categoryId: args.categoryId } : {}),
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          // Log successful query in production (remove in actual production)
+          if (process.env.NODE_ENV === 'production') {
+            console.log('userPosts query successful:', {
+              userId: ctx.userId,
+              postCount: posts.length,
+            });
+          }
+
+          return posts;
+        } catch (error) {
+          // Log database errors in production
+          console.error('Database error in userPosts:', {
+            error,
+            userId: ctx.userId,
+            query,
+          });
+          throw error;
+        }
       },
     }),
 
