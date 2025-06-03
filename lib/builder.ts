@@ -14,10 +14,40 @@ export const builder = new SchemaBuilder<{
   };
 }>({
   plugins: [ScopeAuthPlugin, PrismaPlugin],
-  authScopes: async (context) => ({
-    isAuthed: !!context.userId,
-    isAdmin: !!context.isAdmin,
-  }),
+  authScopes: async (context) => {
+    try {
+      // Log auth context in production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Auth context evaluation:', {
+          hasUserId: !!context.userId,
+          hasHeaders: !!context.headers,
+          headerKeys: context.headers ? Object.keys(context.headers) : [],
+          prismaConnected: !!context.prisma,
+        });
+      }
+
+      // Test Prisma connection
+      if (process.env.NODE_ENV === 'production') {
+        try {
+          await context.prisma.$queryRaw`SELECT 1`;
+          console.log('Prisma connection test successful');
+        } catch (error) {
+          console.error('Prisma connection test failed:', error);
+        }
+      }
+
+      return {
+        isAuthed: !!context.userId,
+        isAdmin: !!context.isAdmin,
+      };
+    } catch (error) {
+      console.error('Error in auth scopes:', error);
+      return {
+        isAuthed: false,
+        isAdmin: false,
+      };
+    }
+  },
   scopeAuthOptions: {
     unauthorizedError: () => new Error('Not authorized'),
   },

@@ -1,23 +1,46 @@
 import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
 import { cookies } from 'next/headers';
 import { onError } from '@apollo/client/link/error';
+import { ServerError } from '@apollo/client/link/utils';
 
 export function getClient() {
   const cookieStore = cookies();
+  const cookieString = cookieStore.toString();
   
+  // Log cookie information in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Cookie context:', {
+      hasCookies: !!cookieString,
+      cookieLength: cookieString?.length,
+    });
+  }
+
   const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
     if (graphQLErrors) {
-      graphQLErrors.forEach(({ message, locations, path, extensions }) =>
+      graphQLErrors.forEach(({ message, locations, path, extensions }) => {
         console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}, Extensions:`,
-          extensions,
-        ),
-      );
+          '[GraphQL error]:', {
+            message,
+            locations,
+            path,
+            extensions,
+            operationName: operation.operationName,
+            variables: operation.variables,
+            context: operation.getContext(),
+          }
+        );
+      });
     }
     if (networkError) {
-      console.error(`[Network error]: ${networkError}`, {
+      const serverError = networkError as ServerError;
+      console.error('[Network error]:', {
+        name: networkError.name,
+        message: networkError.message,
+        stack: networkError.stack,
+        statusCode: 'statusCode' in serverError ? serverError.statusCode : undefined,
         operation: operation.operationName,
         variables: operation.variables,
+        context: operation.getContext(),
       });
     }
     return forward(operation);
@@ -27,7 +50,7 @@ export function getClient() {
     uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
     credentials: 'include',
     headers: {
-      cookie: cookieStore.toString(),
+      cookie: cookieString,
     },
   });
 
@@ -37,11 +60,15 @@ export function getClient() {
     defaultOptions: {
       query: {
         errorPolicy: 'all',
-        fetchPolicy: 'network-only', // Disable cache for debugging
+        fetchPolicy: 'network-only',
       },
       mutate: {
         errorPolicy: 'all',
       },
+      watchQuery: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'all',
+      }
     },
   });
 } 

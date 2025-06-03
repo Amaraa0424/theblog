@@ -120,22 +120,19 @@ builder.queryType({
         categoryId: t.arg.string(),
       },
       resolve: async (query, root, args, ctx) => {
-        // Log context information in production (remove in actual production)
-        if (process.env.NODE_ENV === 'production') {
-          console.log('userPosts resolver context:', {
-            hasUserId: !!ctx.userId,
-            headers: ctx.headers,
-          });
-        }
+        // Enhanced logging for debugging
+        console.log('userPosts resolver entry:', {
+          hasUserId: !!ctx.userId,
+          headers: ctx.headers,
+          cookies: ctx.req?.cookies,
+          query,
+        });
 
         if (!ctx.userId) {
-          // Log authentication failure in production
-          if (process.env.NODE_ENV === 'production') {
-            console.error('Authentication failed in userPosts:', {
-              headers: ctx.headers,
-              userId: ctx.userId,
-            });
-          }
+          console.error('Authentication failed in userPosts:', {
+            headers: ctx.headers,
+            cookies: ctx.req?.cookies,
+          });
           throw new Error('Not authenticated');
         }
 
@@ -149,22 +146,31 @@ builder.queryType({
             orderBy: { createdAt: 'desc' },
           });
 
-          // Log successful query in production (remove in actual production)
-          if (process.env.NODE_ENV === 'production') {
-            console.log('userPosts query successful:', {
-              userId: ctx.userId,
-              postCount: posts.length,
-            });
-          }
-
-          return posts;
-        } catch (error) {
-          // Log database errors in production
-          console.error('Database error in userPosts:', {
-            error,
+          console.log('userPosts query successful:', {
             userId: ctx.userId,
+            postCount: posts.length,
             query,
           });
+
+          return posts;
+        } catch (error: unknown) {
+          const errorInfo: Record<string, unknown> = {
+            error: error instanceof Error ? error.message : String(error),
+            userId: ctx.userId,
+            query,
+          };
+
+          if (error instanceof Error) {
+            errorInfo.stack = error.stack;
+            errorInfo.name = error.name;
+          }
+
+          // Add Prisma-specific error handling
+          if (error && typeof error === 'object' && 'code' in error) {
+            errorInfo.code = error.code;
+          }
+
+          console.error('Database error in userPosts:', errorInfo);
           throw error;
         }
       },
