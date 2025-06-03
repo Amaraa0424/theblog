@@ -33,7 +33,7 @@ const config: NextConfig = {
         hostname: 'placehold.co',
       }
     ],
-    domains: ['localhost'],
+    domains: ['localhost', 'theblog-indol.vercel.app'],
   },
 };
 
