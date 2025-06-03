@@ -1,4 +1,5 @@
 import { builder } from '../../lib/builder';
+import type { PrismaClient } from '@prisma/client';
 
 builder.prismaObject('Comment', {
   fields: (t) => ({
@@ -17,10 +18,23 @@ builder.prismaObject('Comment', {
     CommentLike: t.relation('CommentLike'),
     likesCount: t.field({
       type: 'Int',
-      resolve: async (parent, _, { prisma }) => {
-        return await prisma.commentLike.count({
-          where: { commentId: parent.id },
-        });
+      nullable: true,
+      resolve: async (
+        parent: { id: string },
+        _args: unknown,
+        { prisma }: { prisma: PrismaClient }
+      ) => {
+        try {
+          return await prisma.commentLike.count({
+            where: { commentId: parent.id },
+          });
+        } catch (error) {
+          console.error('Error fetching comment likes count:', {
+            commentId: parent.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return null; // Return null instead of failing the entire query
+        }
       },
     }),
   }),
