@@ -82,16 +82,35 @@ builder.queryType({
         id: t.arg.string({ required: true }),
       },
       resolve: async (query, root, args, ctx) => {
-        const post = await ctx.prisma.post.findUnique({
-          ...query,
-          where: { id: args.id },
-        });
+        try {
+          // Log the query context
+          console.log('Post Query Context:', {
+            hasUserId: !!ctx.userId,
+            headers: ctx.headers,
+            query,
+            args,
+          });
 
-        if (!post) {
-          throw new Error('Post not found');
+          const post = await ctx.prisma.post.findUnique({
+            ...query,
+            where: { id: args.id },
+          });
+
+          if (!post) {
+            console.log('Post not found:', args.id);
+            throw new Error('Post not found');
+          }
+
+          return post;
+        } catch (error) {
+          console.error('Error in post resolver:', {
+            error,
+            query,
+            args,
+            userId: ctx.userId,
+          });
+          throw error;
         }
-
-        return post;
       },
     }),
 

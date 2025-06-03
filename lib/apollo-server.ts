@@ -5,15 +5,22 @@ import { onError } from '@apollo/client/link/error';
 export function getClient() {
   const cookieStore = cookies();
   
-  const errorLink = onError(({ graphQLErrors, networkError }) => {
-    if (graphQLErrors)
-      graphQLErrors.forEach(({ message, locations, path }) =>
+  const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+    if (graphQLErrors) {
+      graphQLErrors.forEach(({ message, locations, path, extensions }) =>
         console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}, Extensions:`,
+          extensions,
         ),
       );
-    if (networkError) 
-      console.error(`[Network error]: ${networkError}`);
+    }
+    if (networkError) {
+      console.error(`[Network error]: ${networkError}`, {
+        operation: operation.operationName,
+        variables: operation.variables,
+      });
+    }
+    return forward(operation);
   });
 
   const httpLink = new HttpLink({
@@ -30,6 +37,7 @@ export function getClient() {
     defaultOptions: {
       query: {
         errorPolicy: 'all',
+        fetchPolicy: 'network-only', // Disable cache for debugging
       },
       mutate: {
         errorPolicy: 'all',
