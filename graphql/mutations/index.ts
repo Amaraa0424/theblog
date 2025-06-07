@@ -322,21 +322,47 @@ builder.mutationType({
     updateProfile: t.prismaField({
       type: 'User',
       args: {
-        name: t.arg.string(),
-        avatar: t.arg.string(),
+        input: t.arg({ type: 'UpdateProfileInput', required: true }),
       },
       resolve: async (query, root, args, ctx) => {
         if (!ctx.userId) {
           throw new Error('Not authenticated');
         }
 
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: ctx.userId },
+        });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        // If changing password, verify current password
+        if (args.input.newPassword) {
+          if (!args.input.currentPassword) {
+            throw new Error('Current password is required to set new password');
+          }
+
+          const isValidPassword = await verifyPassword(args.input.currentPassword, user.password);
+          if (!isValidPassword) {
+            throw new Error('Current password is incorrect');
+          }
+        }
+
+        // Prepare update data
+        const updateData: any = {};
+        if (args.input.name !== undefined) updateData.name = args.input.name;
+        if (args.input.avatar !== undefined) updateData.avatar = args.input.avatar;
+        if (args.input.email !== undefined) updateData.email = args.input.email;
+        if (args.input.newPassword) {
+          updateData.password = await hashPassword(args.input.newPassword);
+        }
+
+        // Update user
         return ctx.prisma.user.update({
           ...query,
           where: { id: ctx.userId },
-          data: {
-            name: args.name || undefined,
-            avatar: args.avatar || undefined,
-          },
+          data: updateData,
         });
       },
     }),
