@@ -270,7 +270,7 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
 
     startTransition(async () => {
       try {
-        addOptimisticComment(tempComment);
+        addOptimisticComment(tempComment)
 
         const result = await createComment(
           postId,

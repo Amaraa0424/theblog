@@ -1,8 +1,8 @@
 import { builder } from '../../lib/builder';
 import type { PrismaClient } from '@prisma/client';
+import type { PrismaModelTypes } from '@pothos/plugin-prisma';
 
 builder.prismaObject('Comment', {
-    // @ts-expect-error - This is a workaround to fix the type error
   fields: (t) => ({
     id: t.exposeID('id'),
     content: t.exposeString('content'),

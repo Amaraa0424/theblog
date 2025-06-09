@@ -6,7 +6,7 @@ import { Error } from "@/components/ui/error";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 interface Post {
   id: string;
@@ -37,10 +37,7 @@ interface ErrorResponse {
 
 const GET_FEATURED_POSTS = gql`
   query GetFeaturedPosts {
-    publishedPosts(
-      take: 3,
-      orderBy: { likes: { _count: desc } }
-    ) {
+    publishedPosts(take: 3, orderBy: { likes: { _count: desc } }) {
       id
       title
       subtitle
@@ -65,7 +62,8 @@ const GET_FEATURED_POSTS = gql`
 `;
 
 export function Hero() {
-  const { data, loading, error, refetch } = useQuery<FeaturedPostsQueryData>(GET_FEATURED_POSTS);
+  const { data, loading, error, refetch } =
+    useQuery<FeaturedPostsQueryData>(GET_FEATURED_POSTS);
 
   if (error) {
     const err = error as ErrorResponse;

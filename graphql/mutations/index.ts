@@ -182,6 +182,21 @@ builder.mutationType({
           throw new Error('Not authorized');
         }
 
+        // Delete related records first to avoid foreign key constraint violations
+        await ctx.prisma.view.deleteMany({
+          where: { postId: args.id },
+        });
+
+        await ctx.prisma.share.deleteMany({
+          where: { postId: args.id },
+        });
+
+        await ctx.prisma.postReadingTime.deleteMany({
+          where: { postId: args.id },
+        });
+
+        // Note: Comments and Likes have onDelete: Cascade in the schema, so they'll be deleted automatically
+
         return ctx.prisma.post.delete({
           ...query,
           where: { id: args.id },

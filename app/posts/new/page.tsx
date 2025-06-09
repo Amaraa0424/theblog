@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { CategoryCombobox } from '@/components/CategoryCombobox';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -20,6 +21,7 @@ const formSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   categoryId: z.string().min(1, 'Category is required'),
   image: z.string().min(1, 'Image is required'),
+  published: z.boolean().default(false),
 });
 
 const GET_CATEGORIES = gql`
@@ -38,6 +40,7 @@ const CREATE_POST = gql`
     $content: String!
     $categoryId: String!
     $image: String
+    $published: Boolean
   ) {
     createPost(
       title: $title
@@ -45,15 +48,46 @@ const CREATE_POST = gql`
       content: $content
       categoryId: $categoryId
       image: $image
+      published: $published
     ) {
       id
       title
       subtitle
       content
       image
+      published
+      createdAt
+      viewCount
+      author {
+        id
+        name
+      }
       category {
         id
         name
+      }
+      likes {
+        id
+        user {
+          id
+        }
+      }
+      comments {
+        id
+        content
+        createdAt
+        author {
+          id
+          name
+        }
+        parentId
+      }
+      shares {
+        id
+        createdAt
+        sharedWith {
+          name
+        }
       }
     }
   }
@@ -71,6 +105,108 @@ export default function NewPostPage() {
   const { data: categories } = useQuery(GET_CATEGORIES);
 
   const [createPost, { loading }] = useMutation(CREATE_POST, {
+    update(cache, { data }) {
+      if (data?.createPost) {
+        // Update the USER_DASHBOARD_DATA cache
+        try {
+          const existingData = cache.readQuery({
+            query: gql`
+              query UserDashboardData {
+                userPosts {
+                  id
+                  title
+                  subtitle
+                  content
+                  image
+                  published
+                  createdAt
+                  viewCount
+                  likes {
+                    id
+                    user {
+                      id
+                    }
+                  }
+                  author {
+                    id
+                    name
+                  }
+                  comments {
+                    id
+                    content
+                    createdAt
+                    author {
+                      id
+                      name
+                    }
+                    parentId
+                  }
+                  shares {
+                    id
+                    createdAt
+                    sharedWith {
+                      name
+                    }
+                  }
+                }
+              }
+            `,
+          });
+
+          if (existingData?.userPosts) {
+            // Add the new post to the beginning of the list
+            cache.writeQuery({
+              query: gql`
+                query UserDashboardData {
+                  userPosts {
+                    id
+                    title
+                    subtitle
+                    content
+                    image
+                    published
+                    createdAt
+                    viewCount
+                    likes {
+                      id
+                      user {
+                        id
+                      }
+                    }
+                    author {
+                      id
+                      name
+                    }
+                    comments {
+                      id
+                      content
+                      createdAt
+                      author {
+                        id
+                        name
+                      }
+                      parentId
+                    }
+                    shares {
+                      id
+                      createdAt
+                      sharedWith {
+                        name
+                      }
+                    }
+                  }
+                }
+              `,
+              data: {
+                userPosts: [data.createPost, ...existingData.userPosts],
+              },
+            });
+          }
+        } catch (error) {
+          console.log('Cache update failed, but post was created successfully:', error);
+        }
+      }
+    },
     onCompleted: (data) => {
       router.push(`/posts/${data.createPost.id}`);
       toast.success('Post created successfully');
@@ -88,6 +224,7 @@ export default function NewPostPage() {
       content: '',
       categoryId: '',
       image: '',
+      published: false,
     },
   });
 
@@ -99,6 +236,7 @@ export default function NewPostPage() {
         content: values.content,
         categoryId: values.categoryId,
         image: values.image || null,
+        published: values.published,
       },
     });
   };
@@ -177,6 +315,29 @@ export default function NewPostPage() {
                   <ImageUpload value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="published"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Published
+                  </FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Make this post visible to the public
+                  </p>
+                </div>
               </FormItem>
             )}
           />

@@ -1,6 +1,6 @@
 import SchemaBuilder from '@pothos/core';
 import PrismaPlugin from '@pothos/plugin-prisma';
-import type PrismaTypes from '@pothos/plugin-prisma/generated';
+import type PrismaTypes from '@/app/generated/prisma/pothos';
 import { prisma } from './prisma';
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
 import { Context } from './types';
@@ -14,7 +14,7 @@ export const builder = new SchemaBuilder<{
   };
 }>({
   plugins: [ScopeAuthPlugin, PrismaPlugin],
-  authScopes: async (context) => {
+  authScopes  : async (context: Context) => {
     try {
       // Log auth context in production
       if (process.env.NODE_ENV === 'production') {
