@@ -3,15 +3,16 @@ import { cookies } from 'next/headers';
 import { onError } from '@apollo/client/link/error';
 import { ServerError } from '@apollo/client/link/utils';
 
-export function getClient() {
+export async function getClient() {
   const cookieStore = cookies();
-  const cookieString = cookieStore.toString();
+  const cookieArray = await Promise.resolve(cookieStore.getAll());
+  const cookieString = cookieArray.map(c => `${c.name}=${c.value}`).join('; ');
   
   // Log cookie information in production
   if (process.env.NODE_ENV === 'production') {
     console.log('Cookie context:', {
-      hasCookies: !!cookieString,
-      cookieLength: cookieString?.length,
+      hasCookies: cookieArray.length > 0,
+      cookieCount: cookieArray.length,
     });
   }
 
@@ -47,7 +48,7 @@ export function getClient() {
   });
 
   const httpLink = new HttpLink({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3000/api/graphql',
     credentials: 'include',
     headers: {
       cookie: cookieString,

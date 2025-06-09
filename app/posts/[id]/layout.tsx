@@ -25,10 +25,10 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const {id} = await params;
-
   try {
-    const { data } = await getClient().query({
+    const { id } = params;
+    const client = await getClient();
+    const { data } = await client.query({
       query: GET_POST_METADATA,
       variables: { id },
     });
