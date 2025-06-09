@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
+import { LoadingBar } from "@/components/LoadingBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,6 +56,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <ApolloWrapper>
+              <LoadingBar />
               <div className="relative min-h-screen flex flex-col">
                 <Navbar />
                 <main className="flex-1 container mx-auto px-4 py-8">
