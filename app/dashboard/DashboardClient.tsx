@@ -141,10 +141,6 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                   author: {
                     id: data.me.id,
                     name: data.me.name || '',
-                  },
-                  _count: {
-                    comments: 0,
-                    likes: 0
                   }
                 }} 
               />

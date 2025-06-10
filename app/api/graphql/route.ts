@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
 
 export type GraphQLContext = {
   prisma: typeof prisma;
@@ -89,4 +90,10 @@ const handler = startServerAndCreateNextHandler(server, {
   context: createContext,
 });
 
-export { handler as GET, handler as POST }; 
+export async function GET(req: NextRequest) {
+  return handler(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handler(req);
+} 

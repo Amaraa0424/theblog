@@ -1,61 +1,51 @@
+import { builder } from '@/lib/builder';
+import type { Context } from '@/lib/types';
+
+const SearchResultType = builder.objectRef<{
+  users: any[];
+  posts: any[];
+}>('SearchResult');
+
+SearchResultType.implement({
+  fields: (t) => ({
+    users: t.prismaField({
+      type: ['User'],
+      resolve: (query, parent) => parent.users,
+    }),
+    posts: t.prismaField({
+      type: ['Post'],
+      resolve: (query, parent) => parent.posts,
+    }),
+  }),
+});
+
 builder.queryField('search', (t) =>
   t.field({
-    type: builder.objectType('SearchResult', {
-      fields: (t) => ({
-        users: t.field({
-          type: ['User'],
-          resolve: (parent) => parent.users,
-        }),
-        posts: t.field({
-          type: ['Post'],
-          resolve: (parent) => parent.posts,
-        }),
-      }),
-    }),
+    type: SearchResultType,
     args: {
       query: t.arg.string({ required: true }),
     },
-    resolve: async (_, { query }, { prisma }) => {
-      const [users, posts] = await Promise.all([
-        prisma.user.findMany({
-          where: {
-            OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { username: { contains: query, mode: 'insensitive' } },
-              { email: { contains: query, mode: 'insensitive' } },
-            ],
-          },
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            email: true,
-            avatar: true,
-          },
-          take: 5,
-        }),
-        prisma.post.findMany({
-          where: {
-            OR: [
-              { title: { contains: query, mode: 'insensitive' } },
-              { subtitle: { contains: query, mode: 'insensitive' } },
-              { content: { contains: query, mode: 'insensitive' } },
-            ],
-            published: true,
-          },
-          include: {
-            author: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          take: 5,
-        }),
-      ]);
+    resolve: async (_, { query }, ctx: Context) => {
+      const users = await ctx.prisma.user.findMany({
+        where: {
+          OR: [
+            { name: { contains: query, mode: 'insensitive' } },
+            { username: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+        take: 5,
+      });
+
+      const posts = await ctx.prisma.post.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: 'insensitive' } },
+            { content: { contains: query, mode: 'insensitive' } },
+          ],
+          published: true,
+        },
+        take: 5,
+      });
 
       return { users, posts };
     },
