@@ -21,7 +21,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        email: formData.email,
+        identifier: formData.identifier,
         password: formData.password,
         redirect: false,
       });
@@ -65,19 +65,19 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>
             <CardDescription>
-              Enter your email and password to login to your account
+              Enter your email or username and password to login to your account
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">Email or Username</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
+                id="identifier"
+                name="identifier"
+                type="text"
+                placeholder="Enter your email or username"
                 required
-                value={formData.email}
+                value={formData.identifier}
                 onChange={handleChange}
               />
             </div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
             <div className="text-sm text-muted-foreground text-center">
               Don&apos;t have an account?{" "}
               <Link 
-                href="/signup" 
+                href="/register" 
                 className="text-primary underline-offset-4 hover:underline"
               >
                 Sign up

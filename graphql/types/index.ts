@@ -4,6 +4,7 @@ import { builder } from '../../lib/builder';
 export * from './Category';  // No dependencies
 export * from './Tag';       // No dependencies
 export * from './User';      // No dependencies
+export * from './Follow';    // Depends on User
 export * from './Post';      // Depends on User, Category, Tag
 export * from './Comment';   // Depends on User, Post
 export * from './CommentLike'; // Depends on Comment, User

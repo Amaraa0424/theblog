@@ -21,6 +21,7 @@ builder.mutationType({
         email: t.arg.string({ required: true }),
         password: t.arg.string({ required: true }),
         name: t.arg.string(),
+        username: t.arg.string({ required: true }),
       },
       resolve: async (query, root, args, ctx) => {
         const hashedPassword = await hashPassword(args.password);
@@ -30,6 +31,7 @@ builder.mutationType({
           ...query,
           data: {
             email: args.email,
+            username: args.username,
             password: hashedPassword,
             name: args.name,
             verificationToken: {
@@ -538,6 +540,57 @@ builder.mutationType({
             userId: userId || null,
             isGuest: !userId,
           },
+        });
+      },
+    }),
+
+    toggleFollow: t.prismaField({
+      type: 'User',
+      args: {
+        userId: t.arg.string({ required: true }),
+      },
+      resolve: async (query, root, args, ctx) => {
+        if (!ctx.userId) {
+          throw new Error('Not authenticated');
+        }
+
+        if (ctx.userId === args.userId) {
+          throw new Error('Cannot follow yourself');
+        }
+
+        // Check if already following
+        const existingFollow = await ctx.prisma.follow.findUnique({
+          where: {
+            followerId_followingId: {
+              followerId: ctx.userId,
+              followingId: args.userId,
+            },
+          },
+        });
+
+        if (existingFollow) {
+          // Unfollow
+          await ctx.prisma.follow.delete({
+            where: {
+              followerId_followingId: {
+                followerId: ctx.userId,
+                followingId: args.userId,
+              },
+            },
+          });
+        } else {
+          // Follow
+          await ctx.prisma.follow.create({
+            data: {
+              followerId: ctx.userId,
+              followingId: args.userId,
+            },
+          });
+        }
+
+        return ctx.prisma.user.findUnique({
+          ...query,
+          where: { id: args.userId },
         });
       },
     }),

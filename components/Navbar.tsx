@@ -11,11 +11,8 @@ import {
 import { UserNav } from "./UserNav";
 import { useSession } from "next-auth/react";
 import { Menu } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { SearchInput } from "@/components/SearchInput";
 
 export function Navbar() {
   const { data: session, status } = useSession();
@@ -23,15 +20,21 @@ export function Navbar() {
   const NavItems = () => (
     <>
       <Link href="/posts">
-        <Button variant="ghost" className="w-full justify-start">Posts</Button>
+        <Button variant="ghost" className="w-full justify-start">
+          Posts
+        </Button>
       </Link>
       {session && (
         <>
           <Link href="/dashboard">
-            <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+            <Button variant="ghost" className="w-full justify-start">
+              Dashboard
+            </Button>
           </Link>
           <Link href="/posts/new">
-            <Button variant="ghost" className="w-full justify-start">New Post</Button>
+            <Button variant="ghost" className="w-full justify-start">
+              New Post
+            </Button>
           </Link>
         </>
       )}
@@ -92,7 +95,9 @@ export function Navbar() {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-
+        <div className="flex-1">
+          <SearchInput />
+        </div>
         {/* Right side items */}
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />

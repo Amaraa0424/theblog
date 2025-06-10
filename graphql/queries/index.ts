@@ -199,5 +199,45 @@ builder.queryType({
         });
       },
     }),
+
+    followers: t.prismaField({
+      type: ['User'],
+      args: {
+        userId: t.arg.string({ required: true }),
+        take: t.arg.int(),
+        skip: t.arg.int(),
+      },
+      resolve: async (query, root, args, ctx) => {
+        const followers = await ctx.prisma.follow.findMany({
+          where: { followingId: args.userId },
+          take: args.take ?? 10,
+          skip: args.skip ?? 0,
+          select: {
+            follower: query,
+          },
+        });
+        return followers.map(f => f.follower);
+      },
+    }),
+
+    following: t.prismaField({
+      type: ['User'],
+      args: {
+        userId: t.arg.string({ required: true }),
+        take: t.arg.int(),
+        skip: t.arg.int(),
+      },
+      resolve: async (query, root, args, ctx) => {
+        const following = await ctx.prisma.follow.findMany({
+          where: { followerId: args.userId },
+          take: args.take ?? 10,
+          skip: args.skip ?? 0,
+          select: {
+            following: query,
+          },
+        });
+        return following.map(f => f.following);
+      },
+    }),
   }),
 }); 

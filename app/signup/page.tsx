@@ -18,8 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const SIGNUP_MUTATION = gql`
-  mutation Signup($email: String!, $password: String!, $name: String) {
-    signup(email: $email, password: $password, name: $name) {
+  mutation Signup($email: String!, $password: String!, $name: String, $username: String!) {
+    signup(email: $email, password: $password, name: $name, username: $username) {
       id
       email
     }
@@ -31,6 +31,7 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    username: '',
     password: '',
     confirmPassword: '',
   });
@@ -50,6 +51,7 @@ export default function SignUpPage() {
           email: formData.email,
           password: formData.password,
           name: formData.name,
+          username: formData.username,
         },
       });
 
@@ -87,6 +89,18 @@ export default function SignUpPage() {
                 placeholder="John Doe"
                 required
                 value={formData.name}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="johndoe"
+                required
+                value={formData.username}
                 onChange={handleChange}
               />
             </div>
