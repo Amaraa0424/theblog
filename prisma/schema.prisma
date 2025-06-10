@@ -49,8 +49,8 @@ model Post {
   categoryId      String
   comments        Comment[]
   likes           Like[]
-  author          User              @relation(fields: [authorId], references: [id])
-  category        Category          @relation(fields: [categoryId], references: [id])
+  author          User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category        Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   PostReadingTime PostReadingTime[]
   shares          Share[]
   views           View[]
@@ -65,7 +65,7 @@ model Comment {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   parentId          String?
-  author            User          @relation(fields: [authorId], references: [id])
+  author            User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   Comment           Comment?      @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
   other_Comment     Comment[]     @relation("CommentToComment")
   post              Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -88,7 +88,7 @@ model View {
   userAgent String
   referrer  String?
   timestamp DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Share {
@@ -97,9 +97,9 @@ model Share {
   sharedById   String
   sharedWithId String
   createdAt    DateTime @default(now())
-  post         Post     @relation(fields: [postId], references: [id])
-  sharedBy     User     @relation(fields: [sharedById], references: [id])
-  sharedWith   User     @relation("SharedWith", fields: [sharedWithId], references: [id])
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  sharedBy     User     @relation(fields: [sharedById], references: [id], onDelete: Cascade)
+  sharedWith   User     @relation("SharedWith", fields: [sharedWithId], references: [id], onDelete: Cascade)
 }
 
 model Session {
@@ -109,7 +109,7 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -118,7 +118,7 @@ model VerificationToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ResetToken {
@@ -127,7 +127,7 @@ model ResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Like {
@@ -158,7 +158,7 @@ model LoginAttempt {
   referrer  String?
   success   Boolean  @default(true)
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserIpAddress {
@@ -170,7 +170,7 @@ model UserIpAddress {
   lastSeenAt DateTime @default(now())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  user       User?    @relation(fields: [userId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([ipAddress, userId])
   @@index([ipAddress])
@@ -198,7 +198,7 @@ model PostReadingTime {
   ipAddress String?
   userAgent String?
   Post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  User      User?     @relation(fields: [userId], references: [id])
+  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([ipAddress])
   @@index([postId])

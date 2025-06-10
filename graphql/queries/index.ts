@@ -1,24 +1,24 @@
 import { builder } from '../../lib/builder';
 
 // Define the OrderDirection type
-const OrderDirection = builder.enumType('OrderDirection', {
+const SortOrder = builder.enumType('SortOrder', {
   values: ['asc', 'desc'] as const,
 });
 
 // Define the LikesOrderByInput type
 const LikesOrderByInput = builder.inputType('LikesOrderByInput', {
   fields: (t) => ({
-    _count: t.field({ type: OrderDirection }),
+    _count: t.field({ type: SortOrder, required: false }),
   }),
 });
 
 // Define the PostOrderByInput type
 const PostOrderByInput = builder.inputType('PostOrderByInput', {
   fields: (t) => ({
-    createdAt: t.field({ type: OrderDirection }),
-    updatedAt: t.field({ type: OrderDirection }),
-    title: t.field({ type: OrderDirection }),
-    likes: t.field({ type: LikesOrderByInput }),
+    createdAt: t.field({ type: SortOrder, required: false }),
+    updatedAt: t.field({ type: SortOrder, required: false }),
+    title: t.field({ type: SortOrder, required: false }),
+    likes: t.field({ type: LikesOrderByInput, required: false }),
   }),
 });
 
@@ -195,7 +195,7 @@ builder.queryType({
           },
           take: args.take ?? undefined,
           skip: args.skip ?? 0,
-          orderBy: args.orderBy ?? { createdAt: 'desc' },
+          orderBy: args.orderBy ? { createdAt: args.orderBy.createdAt || 'desc' } : { createdAt: 'desc' },
         });
       },
     }),

@@ -166,8 +166,8 @@ const FontWeight = Extension.create<FontWeightOptions>({
 });
 
 interface RichTextEditorProps {
-  content: string;
-  onChange: (content: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   className?: string;
 }
 
@@ -194,7 +194,7 @@ const fontWeights = {
 type FontSizeKey = keyof typeof fontSizes;
 type FontWeightKey = keyof typeof fontWeights;
 
-export function RichTextEditor({ content, onChange, className }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, className }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -216,7 +216,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
           },
         }),
     ],
-    content,
+    content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

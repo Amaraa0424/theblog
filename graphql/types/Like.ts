@@ -1,12 +1,15 @@
 import { builder } from '../../lib/builder';
 
-builder.prismaObject('Like', {
+export const Like = builder.prismaObject('Like', {
   fields: (t) => ({
     id: t.exposeID('id'),
     post: t.relation('post'),
     user: t.relation('user'),
-    createdAt: t.expose('createdAt', {
+    createdAt: t.field({
       type: 'DateTime',
+      resolve: (parent) => parent.createdAt,
     }),
   }),
-}); 
+});
+
+export default Like; 

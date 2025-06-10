@@ -18,22 +18,15 @@ const config: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        hostname: '**',
       },
-      {
-        protocol: 'https',
-        hostname: 'www.toursmongolia.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      }
     ],
-    domains: ['localhost', 'theblog-indol.vercel.app'],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+      allowedOrigins: ['*']
+    }
   },
 };
 

@@ -2,6 +2,17 @@ import { builder } from '../../lib/builder';
 import { hashPassword, verifyPassword, generateToken, generateVerificationToken } from '../../lib/auth-utils';
 import { addDays } from 'date-fns';
 
+// Define the input type here where it's used
+const UpdateProfileInput = builder.inputType('UpdateProfileInput', {
+  fields: (t) => ({
+    name: t.string({ required: false }),
+    avatar: t.string({ required: false }),
+    email: t.string({ required: false }),
+    currentPassword: t.string({ required: false }),
+    newPassword: t.string({ required: false }),
+  }),
+});
+
 builder.mutationType({
   fields: (t) => ({
     signup: t.prismaField({
@@ -154,7 +165,7 @@ builder.mutationType({
             subtitle: args.subtitle || undefined,
             content: args.content || undefined,
             image: args.image || undefined,
-            published: args.published === undefined ? undefined : args.published,
+            published: args.published === undefined ? undefined : Boolean(args.published),
             categoryId: args.categoryId || undefined,
             tags: args.tagIds ? {
               set: args.tagIds.map(id => ({ id })),
@@ -337,7 +348,10 @@ builder.mutationType({
     updateProfile: t.prismaField({
       type: 'User',
       args: {
-        input: t.arg({ type: 'UpdateProfileInput', required: true }),
+        input: t.arg({
+          type: UpdateProfileInput,
+          required: true,
+        }),
       },
       resolve: async (query, root, args, ctx) => {
         if (!ctx.userId) {
@@ -352,28 +366,28 @@ builder.mutationType({
           throw new Error('User not found');
         }
 
-        // If changing password, verify current password
-        if (args.input.newPassword) {
-          if (!args.input.currentPassword) {
-            throw new Error('Current password is required to set new password');
+        const input = args.input;
+
+        if (input.newPassword) {
+          if (!input.currentPassword) {
+            throw new Error('Current password is required to set a new password');
           }
 
-          const isValidPassword = await verifyPassword(args.input.currentPassword, user.password);
+          const isValidPassword = await verifyPassword(input.currentPassword, user.password);
           if (!isValidPassword) {
             throw new Error('Current password is incorrect');
           }
         }
 
-        // Prepare update data
         const updateData: any = {};
-        if (args.input.name !== undefined) updateData.name = args.input.name;
-        if (args.input.avatar !== undefined) updateData.avatar = args.input.avatar;
-        if (args.input.email !== undefined) updateData.email = args.input.email;
-        if (args.input.newPassword) {
-          updateData.password = await hashPassword(args.input.newPassword);
+
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.avatar !== undefined) updateData.avatar = input.avatar;
+        if (input.email !== undefined) updateData.email = input.email;
+        if (input.newPassword) {
+          updateData.password = await hashPassword(input.newPassword);
         }
 
-        // Update user
         return ctx.prisma.user.update({
           ...query,
           where: { id: ctx.userId },
@@ -443,24 +457,31 @@ builder.mutationType({
           });
 
           // Track IP address
-          await ctx.prisma.userIpAddress.upsert({
+          const existingRecord = await ctx.prisma.userIpAddress.findFirst({
             where: {
-              ipAddress_userId: {
-                ipAddress,
-                userId: ctx.userId || null
-              }
-            },
-            update: {
-              lastSeenAt: new Date(),
-              userAgent,
-            },
-            create: {
               ipAddress,
-              userAgent,
               userId: ctx.userId || null,
-              isGuest: !ctx.userId,
             },
           });
+
+          if (existingRecord) {
+            await ctx.prisma.userIpAddress.update({
+              where: { id: existingRecord.id },
+              data: {
+                lastSeenAt: new Date(),
+                userAgent,
+              },
+            });
+          } else {
+            await ctx.prisma.userIpAddress.create({
+              data: {
+                ipAddress,
+                userAgent,
+                userId: ctx.userId || null,
+                isGuest: !ctx.userId,
+              },
+            });
+          }
 
           // Return updated post
           return ctx.prisma.post.findUniqueOrThrow({

@@ -21,7 +21,8 @@ export const contentType = 'image/png';
 
 export default async function Image({ params }: { params: { id: string } }) {
   try {
-    const { data } = await getClient().query({
+    const client = await getClient();
+    const { data } = await client.query({
       query: GET_POST_IMAGE,
       variables: { id: params.id },
     });

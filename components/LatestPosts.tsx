@@ -18,6 +18,7 @@ interface Post {
   content: string;
   image?: string;
   createdAt: string;
+  viewCount: number;
   likes: {
     id: string;
     user: {
@@ -47,6 +48,7 @@ const GET_PUBLISHED_POSTS = gql`
       content
       image
       createdAt
+      viewCount
       likes {
         id
         user {

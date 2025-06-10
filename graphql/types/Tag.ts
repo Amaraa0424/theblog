@@ -1,15 +1,19 @@
 import { builder } from '../../lib/builder';
 
-builder.prismaObject('Tag', {
+export const Tag = builder.prismaObject('Tag', {
   fields: (t) => ({
     id: t.exposeID('id'),
     name: t.exposeString('name'),
     posts: t.relation('posts'),
-    createdAt: t.expose('createdAt', {
+    createdAt: t.field({
       type: 'DateTime',
+      resolve: (parent) => parent.createdAt,
     }),
-    updatedAt: t.expose('updatedAt', {
+    updatedAt: t.field({
       type: 'DateTime',
+      resolve: (parent) => parent.updatedAt,
     }),
   }),
-}); 
+});
+
+export default Tag; 

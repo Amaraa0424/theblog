@@ -164,7 +164,7 @@ export function PostForm({ post }: PostFormProps) {
         <div className="space-y-2">
           <Label>Content</Label>
           <RichTextEditor
-            content={content}
+            value={content}
             onChange={setContent}
           />
         </div>

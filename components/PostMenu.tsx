@@ -56,14 +56,14 @@ export function PostMenu({ post }: PostMenuProps) {
     update(cache) {
       cache.modify({
         fields: {
-          userPosts(existingPosts: Reference[] = []) {
+          userPosts(existingPosts = []) {
             return existingPosts.filter(
-              (postRef) => postRef.__ref !== `Post:${post.id}`
+              (postRef: Reference) => postRef.__ref !== `Post:${post.id}`
             );
           },
-          posts(existingPosts: Reference[] = []) {
+          posts(existingPosts = []) {
             return existingPosts.filter(
-              (postRef) => postRef.__ref !== `Post:${post.id}`
+              (postRef: Reference) => postRef.__ref !== `Post:${post.id}`
             );
           },
         },

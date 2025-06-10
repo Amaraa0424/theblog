@@ -2,21 +2,25 @@ import { builder } from '../../lib/builder';
 import type { PrismaClient } from '@prisma/client';
 import type { PrismaModelTypes } from '@pothos/plugin-prisma';
 
-builder.prismaObject('Comment', {
+export const Comment = builder.prismaObject('Comment', {
   fields: (t) => ({
     id: t.exposeID('id'),
     content: t.exposeString('content'),
-    post: t.relation('post'),
     author: t.relation('author'),
+    post: t.relation('post'),
     parentId: t.exposeString('parentId', { nullable: true }),
-    createdAt: t.expose('createdAt', {
-      type: 'DateTime',
-    }),
-    updatedAt: t.expose('updatedAt', {
-      type: 'DateTime',
-    }),
+    parent: t.relation('Comment', { nullable: true }),
     replies: t.relation('other_Comment'),
     CommentLike: t.relation('CommentLike'),
+    mentionedUsers: t.relation('User_UserMentions'),
+    createdAt: t.field({
+      type: 'DateTime',
+      resolve: (parent) => parent.createdAt,
+    }),
+    updatedAt: t.field({
+      type: 'DateTime',
+      resolve: (parent) => parent.updatedAt,
+    }),
     likesCount: t.field({
       type: 'Int',
       nullable: true,
@@ -39,4 +43,6 @@ builder.prismaObject('Comment', {
       },
     }),
   }),
-}); 
+});
+
+export default Comment; 

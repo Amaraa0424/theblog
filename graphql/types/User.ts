@@ -16,32 +16,27 @@ type SchemaTypes = {
   };
 };
 
-builder.prismaObject('User', {
-  // @ts-expect-error - Pothos infers types correctly here
+export const User = builder.prismaObject('User', {
   fields: (t) => ({
     id: t.exposeID('id'),
-    name: t.exposeString('name', { nullable: true }),
     email: t.exposeString('email'),
+    name: t.exposeString('name', { nullable: true }),
     avatar: t.exposeString('avatar', { nullable: true }),
-    role: t.expose('role', { type: Role }),
+    role: t.exposeString('role'),
     posts: t.relation('posts'),
     comments: t.relation('comments'),
+    likes: t.relation('likes'),
     shares: t.relation('shares'),
     sharedWithMe: t.relation('sharedWithMe'),
-    likes: t.relation('likes'),
-    commentLikes: t.relation('CommentLike'),
-    createdAt: t.expose('createdAt', { type: 'Date' }),
-    updatedAt: t.expose('updatedAt', { type: 'Date' }),
+    createdAt: t.field({
+      type: 'DateTime',
+      resolve: (parent) => parent.createdAt,
+    }),
+    updatedAt: t.field({
+      type: 'DateTime',
+      resolve: (parent) => parent.updatedAt,
+    }),
   }),
 });
 
-// Input type for updating user profile
-builder.inputType('UpdateProfileInput', {
-  fields: (t) => ({
-    name: t.string({ required: false }),
-    avatar: t.string({ required: false }),
-    email: t.string({ required: false }),
-    currentPassword: t.string({ required: false }),
-    newPassword: t.string({ required: false }),
-  }),
-}); 
+export default User; 

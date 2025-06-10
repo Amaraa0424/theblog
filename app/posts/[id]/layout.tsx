@@ -18,15 +18,16 @@ const GET_POST_METADATA = gql`
 `;
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
   children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const client = await getClient();
     const { data } = await client.query({
       query: GET_POST_METADATA,

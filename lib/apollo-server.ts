@@ -1,75 +1,45 @@
-import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { cookies } from 'next/headers';
-import { onError } from '@apollo/client/link/error';
-import { ServerError } from '@apollo/client/link/utils';
+import { setContext } from '@apollo/client/link/context';
+import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 
 export async function getClient() {
-  const cookieStore = cookies();
-  const cookieArray = await Promise.resolve(cookieStore.getAll());
-  const cookieString = cookieArray.map(c => `${c.name}=${c.value}`).join('; ');
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie: RequestCookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
   
   // Log cookie information in production
   if (process.env.NODE_ENV === 'production') {
-    console.log('Cookie context:', {
-      hasCookies: cookieArray.length > 0,
-      cookieCount: cookieArray.length,
+    console.log('Cookie Store:', {
+      hasSessionToken: cookieStore.has('next-auth.session-token'),
+      allCookies: cookieStore.getAll().map((c: RequestCookie) => c.name),
     });
   }
 
-  const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
-    if (graphQLErrors) {
-      graphQLErrors.forEach(({ message, locations, path, extensions }) => {
-        console.error(
-          '[GraphQL error]:', {
-            message,
-            locations,
-            path,
-            extensions,
-            operationName: operation.operationName,
-            variables: operation.variables,
-            context: operation.getContext(),
-          }
-        );
-      });
-    }
-    if (networkError) {
-      const serverError = networkError as ServerError;
-      console.error('[Network error]:', {
-        name: networkError.name,
-        message: networkError.message,
-        stack: networkError.stack,
-        statusCode: 'statusCode' in serverError ? serverError.statusCode : undefined,
-        operation: operation.operationName,
-        variables: operation.variables,
-        context: operation.getContext(),
-      });
-    }
-    return forward(operation);
-  });
-
-  const httpLink = new HttpLink({
+  const httpLink = createHttpLink({
     uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3000/api/graphql',
     credentials: 'include',
-    headers: {
-      cookie: cookieString,
-    },
+  });
+
+  const authLink = setContext((_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        cookie: cookieHeader,
+      },
+    };
   });
 
   return new ApolloClient({
+    link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
-    link: from([errorLink, httpLink]),
     defaultOptions: {
       query: {
-        errorPolicy: 'all',
-        fetchPolicy: 'network-only',
-      },
-      mutate: {
+        fetchPolicy: 'no-cache',
         errorPolicy: 'all',
       },
-      watchQuery: {
-        fetchPolicy: 'network-only',
-        errorPolicy: 'all',
-      }
     },
   });
 } 

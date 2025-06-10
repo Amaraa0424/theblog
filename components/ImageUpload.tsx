@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Upload } from 'lucide-react';
 
 interface ImageUploadProps {
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
   className?: string;
 }

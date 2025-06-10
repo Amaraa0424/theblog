@@ -2,12 +2,14 @@ import { Suspense } from 'react';
 import { use } from 'react';
 import { EditPostContent } from './EditPostContent';
 
-export default function EditPostPage({
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function EditPostPage({
   params,
-}: {
-  params: { id: string };
-}) {
-  const resolvedParams = use(Promise.resolve(params));
+}: PageProps) {
+  const resolvedParams = await params;
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
