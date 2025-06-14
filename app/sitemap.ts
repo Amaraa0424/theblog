@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.ourlab.fun';
   
-  // Static pages
+  // Static pages with more comprehensive entries
   const staticPages = [
     {
       url: baseUrl,
@@ -30,7 +30,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/signup`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    },
+    {
       url: `${baseUrl}/dashboard`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/profile/dashboard`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/posts/new`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.6,
