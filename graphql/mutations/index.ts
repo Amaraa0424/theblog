@@ -53,7 +53,7 @@ builder.mutationType({
       args: {
         input: t.arg({ type: SignupInput, required: true }),
       },
-      resolve: async (query, _root, { input }, ctx) => {
+      resolve: async (query, _root, { input }) => {
         const existingUser = await prisma.user.findFirst({
           where: {
             OR: [{ email: input.email }, { username: input.username }],
@@ -418,7 +418,7 @@ builder.mutationType({
         // Check for username uniqueness if username is being updated
         if (input.username !== undefined && input.username !== user.username) {
           const existingUser = await ctx.prisma.user.findUnique({
-            where: { username: input.username },
+            where: { username: input.username || undefined },
           });
           
           if (existingUser) {
@@ -437,12 +437,12 @@ builder.mutationType({
           }
         }
 
-        const updateData: Record<string, any> = {};
+        const updateData: Record<string, string | undefined> = {};
 
-        if (input.name !== undefined) updateData.name = input.name;
-        if (input.username !== undefined) updateData.username = input.username;
-        if (input.avatar !== undefined) updateData.avatar = input.avatar;
-        if (input.email !== undefined) updateData.email = input.email;
+        if (input.name !== undefined) updateData.name = input.name || undefined;
+        if (input.username !== undefined) updateData.username = input.username || undefined;
+        if (input.avatar !== undefined) updateData.avatar = input.avatar || undefined;
+        if (input.email !== undefined) updateData.email = input.email || undefined;
         if (input.newPassword) {
           updateData.password = await hash(input.newPassword);
         }
@@ -701,7 +701,7 @@ builder.mutationType({
       args: {
         input: t.arg({ type: EmailVerificationInput, required: true }),
       },
-      resolve: async (_root, { input }, _ctx) => {
+      resolve: async (_root, { input }) => {
         const token = await prisma.verificationToken.findFirst({
           where: {
             token: input.token,
@@ -732,7 +732,7 @@ builder.mutationType({
       args: {
         input: t.arg({ type: PasswordResetRequestInput, required: true }),
       },
-      resolve: async (_root, { input }, _ctx) => {
+      resolve: async (_root, { input }) => {
         const user = await prisma.user.findUnique({
           where: { email: input.email },
         });
@@ -776,7 +776,7 @@ builder.mutationType({
       args: {
         input: t.arg({ type: PasswordResetInput, required: true }),
       },
-      resolve: async (_root, { input }, _ctx) => {
+      resolve: async (_root, { input }) => {
         const token = await prisma.verificationToken.findFirst({
           where: {
             token: input.token,

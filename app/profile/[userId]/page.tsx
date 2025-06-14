@@ -17,11 +17,12 @@ import Link from "next/link";
 export default async function ProfilePage({
   params,
 }: {
-  params: { userId: string };
+  params: Promise<{ userId: string }>;
 }) {
+  const { userId } = await params;
   const session = await getServerSession(authOptions);
   const user = await prisma.user.findUnique({
-    where: { id: params.userId },
+    where: { id: userId },
     include: {
       posts: {
         where: { published: true },

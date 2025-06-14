@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { gql, useMutation } from '@apollo/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -22,25 +22,51 @@ const formSchema = z.object({
   image: z.string().min(1, 'Image is required'),
   categoryId: z.string().min(1, 'Category is required'),
   published: z.boolean().default(false),
-}) as z.ZodType<{
-  title: string;
-  subtitle?: string;
-  content: string;
-  image: string;
-  categoryId: string;
-  published: boolean;
-}>;
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
-const GET_CATEGORIES = gql`
-  query GetCategories {
-    categories {
-      id
-      name
-    }
-  }
-`;
+interface Post {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  content: string;
+  image: string | null;
+  published: boolean;
+  createdAt: string;
+  viewCount: number;
+  author: {
+    id: string;
+    name: string;
+  };
+  category: {
+    id: string;
+    name: string;
+  };
+  likes: Array<{
+    id: string;
+    user: {
+      id: string;
+    };
+  }>;
+  comments: Array<{
+    id: string;
+    content: string;
+    createdAt: string;
+    author: {
+      id: string;
+      name: string;
+    };
+    parentId: string | null;
+  }>;
+  shares: Array<{
+    id: string;
+    createdAt: string;
+    sharedWith: {
+      name: string;
+    };
+  }>;
+}
 
 const CREATE_POST = gql`
   mutation CreatePost(
@@ -165,13 +191,11 @@ export default function NewPostPage() {
     },
   });
 
-  const { data: categories } = useQuery(GET_CATEGORIES);
-
   const [createPost, { loading }] = useMutation(CREATE_POST, {
     update(cache, { data }) {
       if (data?.createPost) {
         try {
-          const existingData = cache.readQuery<{ userPosts: any[] }>({
+          const existingData = cache.readQuery<{ userPosts: Post[] }>({
             query: USER_DASHBOARD_DATA,
           });
 
@@ -197,7 +221,7 @@ export default function NewPostPage() {
       });
       toast.success('Post created successfully');
       router.push('/');
-    } catch (error) {
+    } catch {
       toast.error('Failed to create post');
     }
   };
@@ -205,7 +229,7 @@ export default function NewPostPage() {
   return (
     <div className="container max-w-4xl py-10">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
           <FormField
             control={form.control as any}
             name="title"

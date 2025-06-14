@@ -6,6 +6,16 @@ import { gql, useQuery } from '@apollo/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+interface Post {
+  id: string;
+  title: string;
+  viewCount: number;
+  likes: Array<{ id: string }>;
+  comments: Array<{ id: string }>;
+  shares: Array<{ id: string }>;
+  createdAt: string;
+}
+
 const GET_USER_DATA = gql`
   query GetUserData {
     me {
@@ -45,11 +55,11 @@ export default function DashboardPage() {
     return <div>Loading...</div>;
   }
 
-  const posts = userData?.me?.posts || [];
-  const totalViews = posts.reduce((sum, post) => sum + (post.viewCount || 0), 0);
-  const totalLikes = posts.reduce((sum, post) => sum + post.likes.length, 0);
-  const totalComments = posts.reduce((sum, post) => sum + post.comments.length, 0);
-  const totalShares = posts.reduce((sum, post) => sum + post.shares.length, 0);
+  const posts: Post[] = userData?.me?.posts || [];
+  const totalViews = posts.reduce((sum: number, post: Post) => sum + (post.viewCount || 0), 0);
+  const totalLikes = posts.reduce((sum: number, post: Post) => sum + post.likes.length, 0);
+  const totalComments = posts.reduce((sum: number, post: Post) => sum + post.comments.length, 0);
+  const totalShares = posts.reduce((sum: number, post: Post) => sum + post.shares.length, 0);
 
   // Prepare data for the engagement chart
   const last30Days = [...Array(30)].map((_, i) => {
@@ -59,14 +69,14 @@ export default function DashboardPage() {
   }).reverse();
 
   const engagementData = last30Days.map(date => {
-    const dayPosts = posts.filter(post => 
+    const dayPosts = posts.filter((post: Post) => 
       post.createdAt.split('T')[0] === date
     );
     return {
       date,
-      views: dayPosts.reduce((sum, post) => sum + (post.viewCount || 0), 0),
-      likes: dayPosts.reduce((sum, post) => sum + post.likes.length, 0),
-      comments: dayPosts.reduce((sum, post) => sum + post.comments.length, 0),
+      views: dayPosts.reduce((sum: number, post: Post) => sum + (post.viewCount || 0), 0),
+      likes: dayPosts.reduce((sum: number, post: Post) => sum + post.likes.length, 0),
+      comments: dayPosts.reduce((sum: number, post: Post) => sum + post.comments.length, 0),
     };
   });
 
