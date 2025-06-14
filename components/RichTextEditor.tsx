@@ -1,22 +1,32 @@
 'use client';
 
-import { useEditor, EditorContent, ChainedCommands } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { common, createLowlight } from 'lowlight';
-import { Toggle } from '@/components/ui/toggle';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import {
   Bold,
   Italic,
   Strikethrough,
   List,
   ListOrdered,
+  Link as LinkIcon,
+  ImageIcon,
+  Type,
   Heading1,
   Heading2,
-  Heading3,
-  Type,
-  Code,
+  Heading3
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Toggle } from '@/components/ui/toggle';
 import {
   Select,
   SelectContent,
@@ -27,46 +37,7 @@ import {
 import { cn } from '@/lib/utils';
 import TextStyle from '@tiptap/extension-text-style';
 import { Extension } from '@tiptap/core';
-import CodeBlockComponent from './CodeBlockComponent';
-
-// Create a new lowlight instance
-const lowlight = createLowlight(common);
-
-// Import all languages you want to support
-import javascript from 'highlight.js/lib/languages/javascript';
-import typescript from 'highlight.js/lib/languages/typescript';
-import html from 'highlight.js/lib/languages/xml';
-import css from 'highlight.js/lib/languages/css';
-import python from 'highlight.js/lib/languages/python';
-import rust from 'highlight.js/lib/languages/rust';
-import go from 'highlight.js/lib/languages/go';
-import cpp from 'highlight.js/lib/languages/cpp';
-import java from 'highlight.js/lib/languages/java';
-import php from 'highlight.js/lib/languages/php';
-import ruby from 'highlight.js/lib/languages/ruby';
-import sql from 'highlight.js/lib/languages/sql';
-import bash from 'highlight.js/lib/languages/bash';
-import json from 'highlight.js/lib/languages/json';
-import yaml from 'highlight.js/lib/languages/yaml';
-import markdown from 'highlight.js/lib/languages/markdown';
-
-// Register the languages
-lowlight.register('javascript', javascript);
-lowlight.register('typescript', typescript);
-lowlight.register('html', html);
-lowlight.register('css', css);
-lowlight.register('python', python);
-lowlight.register('rust', rust);
-lowlight.register('go', go);
-lowlight.register('cpp', cpp);
-lowlight.register('java', java);
-lowlight.register('php', php);
-lowlight.register('ruby', ruby);
-lowlight.register('sql', sql);
-lowlight.register('bash', bash);
-lowlight.register('json', json);
-lowlight.register('yaml', yaml);
-lowlight.register('markdown', markdown);
+import { ChainedCommands } from '@tiptap/react';
 
 interface FontSizeOptions {
   types: string[];
@@ -207,12 +178,14 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
       FontWeight.configure({
         types: ['textStyle'],
       }),
-      CodeBlockLowlight
-        .configure({
-          lowlight,
-          defaultLanguage: 'javascript',
+      Link.configure({
+        HTMLAttributes: {
+          class: 'link',
+        },
+      }),
+      Image.configure({
           HTMLAttributes: {
-            class: 'code-block not-prose my-4',
+          class: 'image',
           },
         }),
     ],
@@ -354,11 +327,44 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
 
             <Toggle
               size="sm"
-              pressed={editor.isActive('codeBlock')}
-              onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
+              pressed={editor.isActive('link')}
+              onPressedChange={() => editor.chain().focus().toggleLink(editor.getAttributes('link').href).run()}
             >
-              <Code className="h-4 w-4" />
+              <LinkIcon className="h-4 w-4" />
             </Toggle>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Toggle
+                  size="sm"
+                  pressed={editor.isActive('image')}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Toggle>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Insert Image</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="imageUrl">Image URL</Label>
+                    <Input
+                      id="imageUrl"
+                      placeholder="https://example.com/image.jpg"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const url = (e.target as HTMLInputElement).value;
+                          if (url) {
+                            editor.chain().focus().setImage({ src: url }).run();
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

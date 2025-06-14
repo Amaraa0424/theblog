@@ -10,17 +10,37 @@ import {
 } from "@/components/ui/navigation-menu";
 import { UserNav } from "./UserNav";
 import { useSession } from "next-auth/react";
-import { Menu } from "lucide-react";
+import { Menu, BookOpen, LayoutDashboard, PlusCircle, LogIn, UserPlus, Home } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchInput } from "@/components/SearchInput";
+import Image from "next/image";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
   const { data: session, status } = useSession();
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentTheme = theme === 'system' ? systemTheme : theme;
+  const isDark = currentTheme === 'dark';
 
   const NavItems = () => (
     <>
+      <Link href="/">
+        <Button variant="ghost" className="w-full justify-start">
+          <Home className="h-4 w-4 mr-2" />
+          Home
+        </Button>
+      </Link>
       <Link href="/posts">
         <Button variant="ghost" className="w-full justify-start">
+          <BookOpen className="h-4 w-4 mr-2" />
           Posts
         </Button>
       </Link>
@@ -28,11 +48,13 @@ export function Navbar() {
         <>
           <Link href="/profile/dashboard">
             <Button variant="ghost" className="w-full justify-start">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
               Dashboard
             </Button>
           </Link>
           <Link href="/posts/new">
             <Button variant="ghost" className="w-full justify-start">
+              <PlusCircle className="h-4 w-4 mr-2" />
               New Post
             </Button>
           </Link>
@@ -42,7 +64,7 @@ export function Navbar() {
   );
 
   return (
-    <header className="container mx-auto sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 container mx-auto">
       <div className="container flex h-14 items-center">
         <div className="flex items-center">
           {/* Mobile Menu */}
@@ -55,8 +77,16 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
               <div className="flex flex-col gap-4 py-4">
-                <Link href="/" className="text-xl font-bold px-2">
-                  TheBlog
+                <Link href="/" className="flex items-center gap-2 px-2">
+                  {mounted && (
+                    <Image
+                      src={isDark ? "/images/ourlabfun-fordarktheme-transparent.png" : "/images/ourlabfun-forlight-transparent.png"}
+                      alt="OurLab.fun Logo"
+                      width={120}
+                      height={40}
+                      className="h-8 w-auto"
+                    />
+                  )}
                 </Link>
                 <NavItems />
               </div>
@@ -64,9 +94,17 @@ export function Navbar() {
           </Sheet>
 
           {/* Desktop Logo */}
-          <Link href="/" className="text-xl font-bold hidden lg:block">
-            <Button variant="link" className="text-xl font-bold">
-              TheBlog
+          <Link href="/" className="hidden lg:block">
+            <Button variant="link" className="p-2">
+              {mounted && (
+                <Image
+                  src={isDark ? "/images/ourlabfun-fordarktheme-transparent.png" : "/images/ourlabfun-forlight-transparent.png"}
+                  alt="OurLab.fun Logo"
+                  width={140}
+                  height={40}
+                  className="h-8 w-auto"
+                />
+              )}
             </Button>
           </Link>
 
@@ -74,20 +112,37 @@ export function Navbar() {
           <NavigationMenu className="hidden lg:flex ml-4">
             <NavigationMenuList>
               <NavigationMenuItem>
+                <Link href="/">
+                  <Button variant="link">
+                    <Home className="h-4 w-4 mr-2" />
+                    Home
+                  </Button>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
                 <Link href="/posts">
-                  <Button variant="link">Posts</Button>
+                  <Button variant="link">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Posts
+                  </Button>
                 </Link>
               </NavigationMenuItem>
               {session && (
                 <>
                   <NavigationMenuItem>
                     <Link href="/profile/dashboard">
-                      <Button variant="link">Dashboard</Button>
+                      <Button variant="link">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link href="/posts/new">
-                      <Button variant="link">New Post</Button>
+                      <Button variant="link">
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        New Post
+                      </Button>
                     </Link>
                   </NavigationMenuItem>
                 </>
@@ -108,10 +163,16 @@ export function Navbar() {
           ) : (
             <>
               <Link href="/login" className="hidden sm:block">
-                <Button variant="ghost">Login</Button>
+                <Button variant="ghost">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
               </Link>
               <Link href="/signup">
-                <Button>Sign up</Button>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Sign up
+                </Button>
               </Link>
             </>
           )}

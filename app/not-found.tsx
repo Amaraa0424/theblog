@@ -25,15 +25,15 @@ export default function NotFound() {
             Page Not Found
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
-            Oops! The page you're looking for seems to have wandered off into the digital void. 
-            Don't worry, even the best explorers sometimes take a wrong turn.
+            Oops! The page you&apos;re looking for seems to have wandered off into the digital void. 
+            Don&apos;t worry, even the best explorers sometimes take a wrong turn.
           </p>
         </div>
 
         {/* Suggestions */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Here's what you can do:
+            Here&apos;s what you can do:
           </h2>
           <ul className="text-left space-y-2 text-gray-600 dark:text-gray-400">
             <li className="flex items-center space-x-2">
@@ -83,7 +83,7 @@ export default function NotFound() {
 
         {/* Fun Quote */}
         <div className="border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400">
-          "Not all those who wander are lost... but this page definitely is."
+          &quot;Not all those who wander are lost... but this page definitely is.&quot;
         </div>
       </div>
 

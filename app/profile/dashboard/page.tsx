@@ -42,7 +42,7 @@ const GET_USER_DATA = gql`
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session } = useSession({
+  useSession({
     required: true,
     onUnauthenticated() {
       router.push('/login');

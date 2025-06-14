@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UserPlus, Mail, Lock, User, AtSign, Eye, EyeOff, LogIn } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 
 const SIGNUP_MUTATION = gql`
   mutation Signup($input: SignupInput!) {
@@ -30,6 +32,8 @@ const SIGNUP_MUTATION = gql`
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,6 +57,11 @@ export default function SignUpPage() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
     try {
       const { data } = await signup({
         variables: { 
@@ -66,7 +75,7 @@ export default function SignUpPage() {
       });
       
       if (data?.signup) {
-        toast.success("Account created! Please check your email for verification code.");
+        toast.success("Account created successfully! Please check your email for verification.");
         router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       }
     } catch (error) {
@@ -88,92 +97,173 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-12rem)]">
-      <Card className="w-full max-w-md">
-        <form onSubmit={handleSubmit}>
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+    <div className="min-h-screen bg-background container mx-auto">
+      <Navbar />
+
+      {/* Main Content */}
+      <div className="container flex items-center justify-center min-h-[calc(100vh-3.5rem)] py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 bg-muted rounded-full w-fit">
+              <UserPlus className="h-6 w-6" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
             <CardDescription>
-              Enter your details below to create your account
+              Join our community and start sharing your ideas
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="John Doe"
-                required
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="johndoe"
-                required
-                value={formData.username}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={signupLoading}
-            >
-              {signupLoading ? "Creating Account..." : "Create Account"}
-            </Button>
-            <div className="text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/login" className="underline">
-                Sign in
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Choose a unique username"
+                    required
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="pl-10 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="pl-10 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex flex-col space-y-4 pt-6">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={signupLoading}
+              >
+                {signupLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Create Account
+                  </>
+                )}
+              </Button>
+              
+              <div className="text-center space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="text-xs text-muted-foreground">Already have an account?</span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
+                
+                <Link href="/login">
+                  <Button variant="outline" className="w-full">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Sign In Instead
+                  </Button>
+                </Link>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 } 

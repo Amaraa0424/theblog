@@ -732,10 +732,10 @@ builder.mutationType({
 
         await Promise.all([
           prisma.verificationToken.update({
-            where: { id: token.id },
-            data: {
-              used: true,
-            },
+          where: { id: token.id },
+          data: {
+            used: true,
+          },
           }),
           prisma.user.update({
             where: { id: token.userId },

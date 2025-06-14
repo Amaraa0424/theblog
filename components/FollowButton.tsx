@@ -32,10 +32,8 @@ export function FollowButton({ userId, isFollowing: initialIsFollowing }: Follow
         description: isFollowing ? 'You are no longer following this user' : 'You are now following this user',
         }
       );
-    } catch (error) {
-      toast.error('Error', {
-        description: 'Failed to update follow status',
-      });
+    } catch {
+      toast.error('Failed to toggle follow');
     } finally {
       setIsLoading(false);
     }

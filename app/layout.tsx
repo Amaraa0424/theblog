@@ -5,9 +5,8 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Navbar } from "@/components/Navbar";
 import { LoadingBar } from "@/components/LoadingBar";
-import { VerificationBanner } from "@/components/VerificationBanner";
+import { ConditionalLayout } from "@/components/ConditionalLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -58,23 +57,9 @@ export default function RootLayout({
           <AuthProvider>
             <ApolloWrapper>
               <LoadingBar />
-              <div className="relative min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1 container mx-auto px-4 py-8">
-                  <VerificationBanner />
+              <ConditionalLayout>
                   {children}
-                </main>
-                <footer className="border-t py-6 md:py-0">
-                  <div className="container mx-auto flex h-14 items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Amaraa doesn&apos;t trust social media
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      © {new Date().getFullYear()} TheBlog. All rights reserved.
-                    </p>
-                  </div>
-                </footer>
-              </div>
+              </ConditionalLayout>
               <Toaster richColors position="top-right" />
             </ApolloWrapper>
           </AuthProvider>

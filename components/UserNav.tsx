@@ -17,7 +17,7 @@ import Link from "next/link";
 
 export function UserNav() {
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
 
   const handleLogout = async () => {
     await signOut({ redirect: false });

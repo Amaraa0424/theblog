@@ -118,7 +118,7 @@ export const authOptions: NextAuthOptions = {
 
         // Also handle any session data passed in
         if (session?.user) {
-          return { ...token, ...session.user };
+        return { ...token, ...session.user };
         }
       }
 

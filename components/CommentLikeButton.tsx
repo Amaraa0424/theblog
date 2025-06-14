@@ -52,13 +52,8 @@ export function CommentLikeButton({ commentId, initialLikes, initialLiked }: Com
       // Update actual state
       setLikeCount(prev => prev + (newIsLiked ? 1 : -1));
       setIsLiked(newIsLiked);
-    } catch (error: unknown) {
-      // Revert optimistic update on error
-      startTransition(() => {
-        updateOptimisticLikes(currentIsLiked ? 1 : -1);
-        updateOptimisticIsLiked(currentIsLiked);
-      });
-      toast.error("Failed to update like");
+    } catch {
+      toast.error('Failed to toggle like');
     }
   };
 

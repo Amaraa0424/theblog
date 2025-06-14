@@ -229,7 +229,7 @@ export default function NewPostPage() {
       if (error instanceof Error && error.message.includes('verify your email')) {
         toast.error('Please verify your email address before creating posts');
       } else {
-        toast.error('Failed to create post');
+      toast.error('Failed to create post');
       }
     }
   };
@@ -279,32 +279,32 @@ export default function NewPostPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <FormField
+          <FormField
                     control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
+            name="title"
+            render={({ field }) => (
+              <FormItem>
                         <FormLabel className="text-base font-semibold">Title *</FormLabel>
-                        <FormControl>
+                <FormControl>
                           <Input 
                             placeholder="Enter an engaging title for your post..." 
                             className="text-lg h-12 border-2 focus:border-primary/50"
                             {...field} 
                           />
-                        </FormControl>
+                </FormControl>
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <FormMessage />
+                <FormMessage />
                           <span>{field.value?.length || 0}/100</span>
                         </div>
-                      </FormItem>
-                    )}
-                  />
+              </FormItem>
+            )}
+          />
 
-                  <FormField
+          <FormField
                     control={form.control}
-                    name="subtitle"
-                    render={({ field }) => (
-                      <FormItem>
+            name="subtitle"
+            render={({ field }) => (
+              <FormItem>
                         <FormLabel className="text-base font-semibold">Subtitle</FormLabel>
                         <FormControl>
                           <Input 
@@ -327,15 +327,15 @@ export default function NewPostPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-semibold">Content *</FormLabel>
-                        <FormControl>
+                <FormControl>
                           <div className="border-2 rounded-lg focus-within:border-primary/50 transition-colors">
                             <RichTextEditor value={field.value} onChange={field.onChange} />
                           </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
                 </CardContent>
               </Card>
             </div>
@@ -354,18 +354,18 @@ export default function NewPostPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <FormField
+          <FormField
                     control={form.control}
                     name="image"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
                           <ImageUpload value={field.value} onChange={field.onChange} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
                 </CardContent>
               </Card>
 
@@ -381,21 +381,21 @@ export default function NewPostPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <FormField
+          <FormField
                     control={form.control}
-                    name="categoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <CategoryCombobox
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <CategoryCombobox
+                    value={field.value}
+                    onChange={field.onChange}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
                 </CardContent>
               </Card>
 
@@ -411,19 +411,19 @@ export default function NewPostPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <FormField
+          <FormField
                     control={form.control}
-                    name="published"
-                    render={({ field }) => (
-                      <FormItem>
+            name="published"
+            render={({ field }) => (
+              <FormItem>
                         <div className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-primary/30 transition-colors">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                               className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
-                          </FormControl>
+                    />
+                  </FormControl>
                           <div className="flex-1">
                             <FormLabel className="text-base font-medium cursor-pointer">
                               Publish immediately
@@ -435,11 +435,11 @@ export default function NewPostPage() {
                           <Badge variant={field.value ? "default" : "secondary"}>
                             {field.value ? "Public" : "Draft"}
                           </Badge>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
                 </CardContent>
               </Card>
 
@@ -461,7 +461,7 @@ export default function NewPostPage() {
                   className="w-full h-11 border-2 hover:bg-muted/50"
                 >
                   Cancel
-                </Button>
+          </Button>
               </div>
             </div>
           </div>

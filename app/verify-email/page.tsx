@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, CheckCircle, ArrowLeft, Clock } from 'lucide-react';
+import { Mail, CheckCircle, ArrowLeft, Clock, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { Navbar } from "@/components/Navbar";
 
 const VERIFY_EMAIL = gql`
   mutation VerifyEmail($input: EmailVerificationInput!) {
@@ -150,125 +151,156 @@ export default function VerifyEmailPage() {
 
   if (isVerified) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900">
-        <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-full w-fit">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-green-800 dark:text-green-200">
-              Email Verified!
-            </CardTitle>
-            <CardDescription className="text-green-600 dark:text-green-400">
-              Your email has been successfully verified. You can now access all features.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Redirecting you to login page...
-            </p>
-            <Link href="/login">
-              <Button className="w-full">
-                Continue to Login
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background container mx-auto">
+        <Navbar />
+
+        {/* Main Content */}
+        <div className="container flex items-center justify-center min-h-[calc(100vh-3.5rem)] py-8">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-full w-fit">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
+                Email Verified!
+              </CardTitle>
+              <CardDescription className="text-green-600 dark:text-green-400">
+                Your email has been successfully verified. You can now access all features.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4 pt-6">
+              <p className="text-sm text-muted-foreground">
+                Redirecting you to login page...
+              </p>
+              <Link href="/login">
+                <Button className="w-full">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Continue to Login
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900">
-      <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-full w-fit">
-            <Mail className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            Verify Your Email
-          </CardTitle>
-          <CardDescription>
-            {email 
-              ? `We've sent a verification code to ${email}`
-              : "Enter the verification code sent to your email address"
-            }
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          {autoVerifying ? (
-            <div className="text-center space-y-4">
-              <div className="animate-spin mx-auto w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-              <p className="text-blue-600 dark:text-blue-400 font-medium">
-                Auto-verifying your email...
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Code detected from email link: <span className="font-mono font-bold">{otp}</span>
-              </p>
+    <div className="min-h-screen bg-background container mx-auto">
+      <Navbar />
+
+      {/* Main Content */}
+      <div className="container flex items-center justify-center min-h-[calc(100vh-3.5rem)] py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 bg-muted rounded-full w-fit">
+              <Mail className="h-6 w-6" />
             </div>
-          ) : (
-            <form onSubmit={handleVerifyEmail} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="otp" className="text-base font-semibold">
-                  Verification Code
-                </Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="Enter 6-digit code"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="text-center text-lg h-12 border-2 focus:border-primary/50 tracking-widest"
-                  maxLength={6}
-                  required
-                />
-                <p className="text-sm text-muted-foreground text-center">
-                  Check your email for a 6-digit verification code
-                </p>
+            <CardTitle className="text-2xl font-bold">Verify Your Email</CardTitle>
+            <CardDescription>
+              {email 
+                ? `We've sent a verification code to ${email}`
+                : "Enter the verification code sent to your email address"
+              }
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {autoVerifying ? (
+              <div className="text-center space-y-4">
+                <div className="relative mx-auto w-12 h-12">
+                  <div className="absolute inset-0 border-4 border-muted rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-semibold">
+                    Auto-verifying your email...
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Code detected: <span className="font-mono font-bold">{otp}</span>
+                  </p>
+                </div>
               </div>
+            ) : (
+              <form onSubmit={handleVerifyEmail} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Verification Code</Label>
+                  <div className="relative">
+                    <Zap className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="text-center text-lg pl-10 tracking-widest font-mono"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Check your email for a 6-digit verification code
+                  </p>
+                </div>
 
-              <div className="space-y-3">
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold"
-                  disabled={verifyLoading}
-                >
-                  {verifyLoading ? 'Verifying...' : 'Verify Email'}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleResendCode}
-                  disabled={isResendDisabled}
-                  className="w-full h-11 border-2 disabled:opacity-50"
-                >
-                  {countdown > 0 ? (
-                    <>
-                      <Clock className="h-4 w-4 mr-2" />
-                      Wait {countdown}s
-                    </>
-                  ) : requestLoading ? (
-                    'Sending...'
-                  ) : (
-                    'Resend Code'
-                  )}
-                </Button>
-              </div>
-            </form>
-          )}
+                <div className="space-y-3 pt-6">
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={verifyLoading}
+                  >
+                    {verifyLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Verify Email
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleResendCode}
+                    disabled={isResendDisabled}
+                    className="w-full"
+                  >
+                    {countdown > 0 ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2" />
+                        Wait {countdown}s
+                      </>
+                    ) : requestLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Resend Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
 
-          <div className="mt-6 text-center">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Login
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="text-center pt-4 border-t">
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 
