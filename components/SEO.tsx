@@ -213,7 +213,7 @@ export function StructuredData({
 
       {/* Google Analytics */}
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+        src="https://www.googletagmanager.com/gtag/js?id=G-Q2NLJPN3CP"
         strategy="afterInteractive"
       />
       <Script id="google-analytics" strategy="afterInteractive">
@@ -221,7 +221,7 @@ export function StructuredData({
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'GA_MEASUREMENT_ID');
+          gtag('config', 'G-Q2NLJPN3CP');
         `}
       </Script>
     </>
