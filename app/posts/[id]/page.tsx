@@ -1,21 +1,35 @@
-'use client';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getClient } from '@/lib/apollo-client';
+import { gql } from '@apollo/client';
+import { generateSEOMetadata, StructuredData } from '@/components/SEO';
+import { PostPageClient } from '@/components/PostPageClient';
 
-import { gql, useQuery } from '@apollo/client';
-import { useParams } from 'next/navigation';
-import { format } from 'date-fns';
-import { useSession } from 'next-auth/react';
-import { Comments } from '@/components/Comments';
-import { LikeButton } from '@/components/LikeButton';
-import { ShareButton } from '@/components/ShareButton';
-import { ViewCounter } from '@/components/ViewCounter';
-import { RichTextReadOnly } from '@/components/RichTextReadOnly';
-import Image from 'next/image';
-
-interface Like {
+interface Post {
   id: string;
-  user: {
+  title: string;
+  subtitle?: string;
+  content: string;
+  image?: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  viewCount: number;
+  likes: {
     id: string;
+    user: {
+      id: string;
+    };
+  }[];
+  author: {
+    id: string;
+    name: string;
   };
+  category?: {
+    id: string;
+    name: string;
+  };
+  comments: any[];
 }
 
 const GET_POST = gql`
@@ -28,6 +42,7 @@ const GET_POST = gql`
       image
       published
       createdAt
+      updatedAt
       viewCount
       likes {
         id
@@ -36,6 +51,10 @@ const GET_POST = gql`
         }
       }
       author {
+        id
+        name
+      }
+      category {
         id
         name
       }
@@ -72,63 +91,105 @@ const GET_POST = gql`
   }
 `;
 
-export default function PostPage() {
-  const params = useParams();
-  const { data: session } = useSession();
-  const { data, loading, error } = useQuery(GET_POST, {
-    variables: { id: params.id },
+async function getPost(id: string): Promise<Post | null> {
+  try {
+    const client = getClient();
+    const { data } = await client.query({
+      query: GET_POST,
+      variables: { id },
+      fetchPolicy: 'no-cache',
+    });
+    
+    return data?.post || null;
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    return null;
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const post = await getPost(params.id);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found | OurLab.fun',
+      description: 'The requested post could not be found.',
+    };
+  }
+
+  // Extract text content from HTML for description
+  const textContent = post.content
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim()
+    .slice(0, 160); // Limit to 160 characters
+
+  const description = post.subtitle || textContent || 'Read this amazing story on OurLab.fun';
+  
+  const tags = [
+    'blog',
+    'article',
+    post.category?.name.toLowerCase() || 'general',
+    ...post.title.toLowerCase().split(' ').slice(0, 3), // First 3 words from title
+  ];
+
+  return generateSEOMetadata({
+    title: post.title,
+    description,
+    image: post.image,
+    url: `/posts/${post.id}`,
+    type: 'article',
+    publishedTime: post.createdAt,
+    modifiedTime: post.updatedAt || post.createdAt,
+    author: post.author.name,
+    tags,
   });
+}
 
-  if (loading) return <div className="loading loading-spinner loading-lg"></div>;
-  if (error) return <div className="alert alert-error">{error.message}</div>;
+export default async function PostPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const post = await getPost(params.id);
 
-  const post = data?.post;
+  if (!post) {
+    notFound();
+  }
+
+  if (!post.published) {
+    notFound();
+  }
+
+  // Extract text content for structured data
+  const textContent = post.content
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const tags = [
+    post.category?.name || 'General',
+    ...post.title.split(' ').slice(0, 3),
+  ];
 
   return (
-    <article className="max-w-4xl mx-auto py-8 px-4">
-      <ViewCounter postId={post.id} />
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-        {post.subtitle && (
-          <p className="text-xl text-muted-foreground mb-6">{post.subtitle}</p>
-        )}
-        <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">
-            <span>By {post.author.name}</span>
-            <span className="mx-2">•</span>
-            <time dateTime={post.createdAt}>
-              {format(new Date(post.createdAt), 'MMMM d, yyyy')}
-            </time>
-            <span className="mx-2">•</span>
-            <span>{post.viewCount} views</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <LikeButton 
-              postId={post.id}
-              initialLikes={post.likes.length}
-              initialLiked={post.likes.some((like: Like) => like.user.id === session?.user?.id)}
-            />
-            <ShareButton postId={post.id} title={post.title} />
-          </div>
-        </div>
-      </header>
-
-      {post.image && (
-        <div className="relative w-full h-[400px] mb-8 rounded-lg overflow-hidden">
-          <Image
-            src={post.image}
-            alt={post.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
-
-      <RichTextReadOnly content={post.content} />
-
-      <div className="mt-16">
-        <Comments postId={post.id} initialComments={post.comments} />
-      </div>
-    </article>
+    <>
+      <StructuredData
+        type="article"
+        title={post.title}
+        description={post.subtitle || textContent.slice(0, 160)}
+        image={post.image}
+        url={`/posts/${post.id}`}
+        publishedTime={post.createdAt}
+        modifiedTime={post.updatedAt || post.createdAt}
+        author={post.author.name}
+        tags={tags}
+      />
+      <PostPageClient post={post} />
+    </>
   );
 } 

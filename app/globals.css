@@ -236,3 +236,19 @@ body[data-state="open"] {
     background-color: hsl(var(--muted-foreground));
   }
 }
+
+/* Enhanced button styling for better light theme visibility */
+@layer components {
+  .btn-enhanced-outline {
+    @apply border-2 border-border/60 bg-background/80 hover:bg-accent hover:border-primary/40 transition-all duration-200;
+  }
+  
+  .btn-enhanced-ghost {
+    @apply hover:bg-accent/80 hover:text-accent-foreground transition-all duration-200;
+  }
+  
+  /* Ensure scroll-to-top button is always visible */
+  .scroll-to-top {
+    @apply fixed bottom-6 right-6 z-50 shadow-lg hover:shadow-xl;
+  }
+}

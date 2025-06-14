@@ -234,7 +234,7 @@ export function BeautifulFooter() {
                     <Button 
                       type="submit" 
                       disabled={isSubmitting}
-                      className="px-6 h-12 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                      className="px-6 h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     >
                       {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -417,14 +417,13 @@ export function BeautifulFooter() {
                 © {new Date().getFullYear()} OurLab.fun. All rights reserved.
               </p>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={scrollToTop}
-                className="relative rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 hover:from-primary/30 hover:to-secondary/30 hover:scale-110 transition-all duration-300 border border-border/50 hover:border-primary/30 backdrop-blur-sm"
+                className="relative rounded-full bg-background/80 hover:bg-accent hover:scale-110 transition-all duration-300 border-2 border-border hover:border-primary/50 backdrop-blur-sm shadow-lg hover:shadow-xl"
                 aria-label="Scroll to top"
               >
                 <ArrowUp className="h-4 w-4 text-foreground" />
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 hover:opacity-20 rounded-full transition-opacity" />
               </Button>
             </div>
           </div>
