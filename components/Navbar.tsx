@@ -26,7 +26,7 @@ export function Navbar() {
       </Link>
       {session && (
         <>
-          <Link href="/dashboard">
+          <Link href="/profile/dashboard">
             <Button variant="ghost" className="w-full justify-start">
               Dashboard
             </Button>
@@ -81,7 +81,7 @@ export function Navbar() {
               {session && (
                 <>
                   <NavigationMenuItem>
-                    <Link href="/dashboard">
+                    <Link href="/profile/dashboard">
                       <Button variant="link">Dashboard</Button>
                     </Link>
                   </NavigationMenuItem>

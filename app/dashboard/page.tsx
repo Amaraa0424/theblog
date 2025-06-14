@@ -1,95 +1,24 @@
-// This is a Server Component
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { executeQuery } from "@/lib/graphql";
-import { DashboardClient } from "./DashboardClient";
+'use client';
 
-const DashboardQuery = `
-  query DashboardQuery {
-    me {
-      id
-      name
-      email
-      avatar
-      posts {
-        id
-        title
-        subtitle
-        published
-        createdAt
-      }
-      followers {
-        id
-        follower {
-          id
-          name
-          avatar
-        }
-      }
-      following {
-        id
-        following {
-          id
-          name
-          avatar
-        }
-      }
-    }
-  }
-`;
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect('/login');
+export default function DashboardRedirect() {
+  const router = useRouter();
 
-  const { data } = await executeQuery<{
-    me: {
-      id: string;
-      name: string | null;
-      email: string;
-      avatar: string | null;
-      posts: Array<{
-        id: string;
-        title: string;
-        subtitle: string | null;
-        published: boolean;
-        createdAt: string;
-      }>;
-      followers: Array<{
-        id: string;
-        follower: {
-          id: string;
-          name: string | null;
-          avatar: string | null;
-        };
-      }>;
-      following: Array<{
-        id: string;
-        following: {
-          id: string;
-          name: string | null;
-          avatar: string | null;
-        };
-      }>;
-    };
-  }>(DashboardQuery);
+  useEffect(() => {
+    // Redirect to the analytics dashboard
+    router.replace('/profile/dashboard');
+  }, [router]);
 
-  if (!data?.me) {
-    redirect('/login');
-  }
-
-  // Add follower and following counts to the data
-  const enhancedData = {
-    me: {
-      ...data.me,
-      _count: {
-        posts: data.me.posts.length,
-        followers: data.me.followers.length,
-        following: data.me.following.length
-      }
-    }
-  };
-
-  return <DashboardClient data={enhancedData} />;
+  return (
+    <div className="container max-w-2xl py-8">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Redirecting to your analytics dashboard...</p>
+        </div>
+      </div>
+    </div>
+  );
 } 

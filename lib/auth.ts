@@ -1,10 +1,43 @@
-import { hash } from 'bcryptjs';
+import { hash, verify } from 'argon2';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-import { validateCredentials } from './auth-utils';
 import { Role } from '@prisma/client';
+
+async function validateCredentials(credentials: {
+  identifier: string;
+  password: string;
+}) {
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: credentials.identifier },
+        { username: credentials.identifier },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      password: true,
+      role: true,
+      avatar: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('No user found with this email or username');
+  }
+
+  const isValid = await verify(user.password, credentials.password);
+  if (!isValid) {
+    throw new Error('Invalid password');
+  }
+
+  return user;
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -33,7 +66,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        // Return the full user object as required by NextAuth
         return user;
       },
     }),
@@ -49,6 +81,9 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.username = user.username;
         token.role = user.role;
+        token.name = user.name;
+        token.avatar = user.avatar;
+        token.image = user.avatar; // Set image to avatar for compatibility
       }
 
       if (trigger === 'update' && session) {
@@ -65,7 +100,10 @@ export const authOptions: NextAuthOptions = {
           id: token.id as string,
           email: token.email as string,
           username: token.username as string,
+          name: token.name as string | null,
           role: token.role as Role,
+          avatar: token.avatar as string | null,
+          image: token.avatar as string | null, // Set image to avatar for compatibility
         };
       }
       return session;
@@ -76,5 +114,5 @@ export const authOptions: NextAuthOptions = {
 };
 
 export async function hashPassword(password: string): Promise<string> {
-  return hash(password, 12);
+  return hash(password);
 } 

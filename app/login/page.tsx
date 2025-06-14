@@ -20,36 +20,35 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get("callbackUrl") || "/";
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     identifier: '',
     password: '',
   });
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
+        redirect: false,
         identifier: formData.identifier,
         password: formData.password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
-        // Get the callback URL from the search params or use a default
-        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      if (!result?.error) {
+        toast.success("Logged in successfully");
         router.push(callbackUrl);
-        toast.success('Logged in successfully');
+        router.refresh();
+      } else {
+        toast.error("Invalid credentials");
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error("An error occurred during login");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -65,7 +64,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>
             <CardDescription>
-              Enter your email or username and password to login to your account
+              Enter your email or username and password to login
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -75,10 +74,10 @@ export default function LoginPage() {
                 id="identifier"
                 name="identifier"
                 type="text"
-                placeholder="Enter your email or username"
-                required
+                placeholder="m@example.com or username"
                 value={formData.identifier}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -87,9 +86,9 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 type="password"
-                required
                 value={formData.password}
                 onChange={handleChange}
+                required
               />
             </div>
           </CardContent>
@@ -97,18 +96,20 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
-            <div className="text-sm text-muted-foreground text-center">
-              Don&apos;t have an account?{" "}
-              <Link 
-                href="/register" 
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                Sign up
+            <div className="text-sm text-center space-y-2">
+              <Link href="/forgot-password" className="text-primary hover:underline block">
+                Forgot password?
               </Link>
+              <div>
+                Don't have an account?{" "}
+                <Link href="/signup" className="text-primary hover:underline">
+                  Sign up
+                </Link>
+              </div>
             </div>
           </CardFooter>
         </form>

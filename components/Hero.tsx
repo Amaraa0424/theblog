@@ -116,7 +116,10 @@ export function Hero() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                       <div className="flex items-center gap-2">
                         <Image
-                          src={`/images/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg`}
+                          src={
+                            data.publishedPosts[0].author.avatar ||
+                            "/images/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg"
+                          }
                           alt={data.publishedPosts[0].author.name}
                           width={24}
                           height={24}

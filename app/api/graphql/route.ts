@@ -19,7 +19,7 @@ const server = new ApolloServer({
 });
 
 async function createContext(): Promise<GraphQLContext> {
-  try {
+    try {
     // First try to get the session directly
     const session = await getServerSession(authOptions);
     
@@ -61,7 +61,7 @@ async function createContext(): Promise<GraphQLContext> {
         },
       } as any,
       secret: process.env.NEXTAUTH_SECRET,
-    });
+});
 
     console.log('Authentication Details:', {
       hasSession: !!session,

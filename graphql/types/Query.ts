@@ -27,24 +27,24 @@ builder.queryField('search', (t) =>
     },
     resolve: async (_, { query }, ctx: Context) => {
       const users = await ctx.prisma.user.findMany({
-        where: {
-          OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { username: { contains: query, mode: 'insensitive' } },
+          where: {
+            OR: [
+              { name: { contains: query, mode: 'insensitive' } },
+              { username: { contains: query, mode: 'insensitive' } },
           ],
-        },
-        take: 5,
+          },
+          take: 5,
       });
 
       const posts = await ctx.prisma.post.findMany({
-        where: {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' } },
-            { content: { contains: query, mode: 'insensitive' } },
-          ],
-          published: true,
-        },
-        take: 5,
+          where: {
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { content: { contains: query, mode: 'insensitive' } },
+            ],
+            published: true,
+          },
+          take: 5,
       });
 
       return { users, posts };

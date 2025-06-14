@@ -42,7 +42,7 @@ const formSchema = z.object({
 
 export default function ProfilePage() {
   const router = useRouter();
-  useSession({
+  const { data: session, update: updateSession } = useSession({
     required: true,
     onUnauthenticated() {
       router.push('/login');
@@ -52,7 +52,17 @@ export default function ProfilePage() {
   const { data: userData, loading: userLoading } = useQuery(GET_USER);
 
   const [updateProfile, { loading: updateLoading }] = useMutation(UPDATE_PROFILE, {
-    onCompleted: () => {
+    onCompleted: async (data) => {
+      // Update the session with the new user data
+      await updateSession({
+        ...session,
+        user: {
+          ...session?.user,
+          name: data.updateProfile.name,
+          avatar: data.updateProfile.avatar,
+          image: data.updateProfile.avatar, // Set both avatar and image
+        },
+      });
       toast.success('Profile updated successfully');
     },
     onError: () => {

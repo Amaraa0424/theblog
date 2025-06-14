@@ -107,7 +107,7 @@ export function PostForm({ post }: PostFormProps) {
 
       if (result.data?.updatePost) {
         toast.success('Post updated successfully');
-        router.push('/dashboard');
+        router.push('/');
       }
     } catch (error) {
       if (error instanceof Error) {

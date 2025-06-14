@@ -196,7 +196,7 @@ export default function NewPostPage() {
         variables: values,
       });
       toast.success('Post created successfully');
-      router.push('/dashboard');
+      router.push('/');
     } catch (error) {
       toast.error('Failed to create post');
     }

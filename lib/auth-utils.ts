@@ -1,16 +1,16 @@
 import { verify, sign } from 'jsonwebtoken';
-import { compare, hash } from 'bcryptjs';
+import { hash, verify as argonVerify } from 'argon2';
 import { prisma } from './prisma';
 
 export async function hashPassword(password: string): Promise<string> {
-  return hash(password, 12);
+  return hash(password);
 }
 
 export async function verifyPassword(
   password: string,
   hashedPassword: string
 ): Promise<boolean> {
-  return compare(password, hashedPassword);
+  return argonVerify(hashedPassword, password);
 }
 
 export function generateToken(payload: Record<string, unknown>): string {
@@ -53,6 +53,15 @@ export async function findUserByEmailOrUsername(identifier: string) {
         { username: identifier },
       ],
     },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      password: true,
+      role: true,
+      avatar: true,
+    },
   });
 }
 
@@ -91,7 +100,24 @@ export async function validateCredentials(credentials: {
   identifier: string;
   password: string;
 }) {
-  const user = await findUserByEmailOrUsername(credentials.identifier);
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: credentials.identifier },
+        { username: credentials.identifier },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      password: true,
+      role: true,
+      avatar: true,
+    },
+  });
+
   if (!user) {
     throw new Error('No user found with this email or username');
   }

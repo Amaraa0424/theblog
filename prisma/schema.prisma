@@ -13,17 +13,19 @@ datasource db {
 }
 
 model User {
-  id                   String             @id @default(uuid())
-  email                String             @unique
-  username             String             @unique
+  id                   String              @id @default(cuid())
+  email                String              @unique
   name                 String?
   password             String
-  role                 Role               @default(USER)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  role                 Role                @default(USER)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
   avatar               String?
+  username             String              @unique
   comments             Comment[]
   CommentLike          CommentLike[]
+  followers            Follow[]            @relation("Followers")
+  following            Follow[]            @relation("Following")
   likes                Like[]
   loginAttempts        LoginAttempt[]
   posts                Post[]
@@ -31,34 +33,32 @@ model User {
   resetToken           ResetToken?
   sessions             Session[]
   shares               Share[]
-  sharedWithMe         Share[]            @relation("SharedWith")
+  sharedWithMe         Share[]             @relation("SharedWith")
   ipAddresses          UserIpAddress[]
-  verificationToken    VerificationToken?
-  Comment_UserMentions Comment[]          @relation("UserMentions")
-  followers            Follow[]           @relation("Following")
-  following            Follow[]           @relation("Followers")
+  verificationToken    VerificationToken[]
+  Comment_UserMentions Comment[]           @relation("UserMentions")
 }
 
 model Post {
   id              String            @id @default(uuid())
   title           String
-  subtitle        String?
   content         String
-  image           String?
   published       Boolean           @default(false)
   authorId        String
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  image           String?
+  subtitle        String?
+  categoryId      String
   viewCount       Int               @default(0)
-  likes           Like[]
   comments        Comment[]
+  likes           Like[]
   author          User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
   category        Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   PostReadingTime PostReadingTime[]
   shares          Share[]
   views           View[]
   tags            Tag[]             @relation("PostToTag")
-  categoryId      String
 }
 
 model Comment {
@@ -117,12 +117,17 @@ model Session {
 }
 
 model VerificationToken {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id        String   @id @default(cuid())
+  userId    String
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  used      Boolean  @default(false)
+  type      String   @default("SIGNUP")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model ResetToken {
@@ -222,7 +227,30 @@ model Follow {
   @@index([followingId])
 }
 
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  type      OTPType
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  used      Boolean  @default(false)
+
+  @@index([email, type])
+}
+
 enum Role {
   USER
   ADMIN
+}
+
+enum OTPType {
+  SIGNUP
+  PASSWORD_RESET
+}
+
+enum TokenType {
+  SIGNUP
+  PASSWORD_RESET
 }

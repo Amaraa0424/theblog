@@ -29,7 +29,7 @@ export function FollowButton({ userId, isFollowing: initialIsFollowing }: Follow
       toast(
         isFollowing ? 'Unfollowed' : 'Following',
         {
-          description: isFollowing ? 'You are no longer following this user' : 'You are now following this user',
+        description: isFollowing ? 'You are no longer following this user' : 'You are now following this user',
         }
       );
     } catch (error) {

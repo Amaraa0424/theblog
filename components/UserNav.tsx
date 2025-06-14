@@ -1,7 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
-import { gql, useQuery } from "@apollo/client";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,26 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const GET_USER = gql`
-  query GetUser {
-    me {
-      id
-      name
-      email
-      avatar
-    }
-  }
-`;
+import Link from "next/link";
 
 export function UserNav() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const { data: userData } = useQuery(GET_USER, {
-    skip: !session,
-  });
+  const { data: session, update: updateSession } = useSession();
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -49,37 +35,62 @@ export function UserNav() {
     );
   };
 
+  if (!session?.user) {
+    return null;
+  }
+
+  // For debugging
+  console.log("Session user:", {
+    name: session.user.name,
+    avatar: session.user.avatar,
+    image: session.user.image,
+  });
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={userData?.me?.avatar}
-              alt={userData?.me?.name || "User"}
+              src={session.user.avatar || undefined}
+              alt={session.user.name || "User"}
             />
             <AvatarFallback>
-              {getInitials(userData?.me?.name || "User")}
+              {getInitials(session.user.name || "User")}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 absolute top-0 right-0" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {userData?.me?.name}
+              {session.user.name}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {userData?.me?.email}
+              {session.user.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push("/profile")}>
+          <DropdownMenuItem asChild>
+            <Link href={`/profile/${session.user.id}`}>
             <User className="mr-2 h-4 w-4" />
-            <span>Profile Settings</span>
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile/dashboard">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Analytics</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

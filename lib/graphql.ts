@@ -68,7 +68,7 @@ const getAuthLink = () => {
         credentials: 'include',
       };
     }
-  });
+});
 };
 
 export async function executeQuery<T>(

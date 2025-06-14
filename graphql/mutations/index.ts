@@ -1,15 +1,48 @@
-import { builder } from '../../lib/builder';
-import { hashPassword, verifyPassword, generateToken, generateVerificationToken } from '../../lib/auth-utils';
-import { addDays } from 'date-fns';
+import { builder } from "@/lib/builder";
+import { generateToken } from '../../lib/auth-utils';
+import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email";
+import { prisma } from "@/lib/prisma";
+import { GraphQLError } from "graphql";
+import { hash, verify } from "argon2";
 
 // Define the input type here where it's used
 const UpdateProfileInput = builder.inputType('UpdateProfileInput', {
   fields: (t) => ({
     name: t.string({ required: false }),
+    username: t.string({ required: false }),
     avatar: t.string({ required: false }),
     email: t.string({ required: false }),
     currentPassword: t.string({ required: false }),
     newPassword: t.string({ required: false }),
+  }),
+});
+
+// Define input types
+const SignupInput = builder.inputType("SignupInput", {
+  fields: (t) => ({
+    email: t.string({ required: true }),
+    password: t.string({ required: true }),
+    username: t.string({ required: true }),
+    name: t.string({ required: true }),
+  }),
+});
+
+const EmailVerificationInput = builder.inputType("EmailVerificationInput", {
+  fields: (t) => ({
+    token: t.string({ required: true }),
+  }),
+});
+
+const PasswordResetRequestInput = builder.inputType("PasswordResetRequestInput", {
+  fields: (t) => ({
+    email: t.string({ required: true }),
+  }),
+});
+
+const PasswordResetInput = builder.inputType("PasswordResetInput", {
+  fields: (t) => ({
+    token: t.string({ required: true }),
+    newPassword: t.string({ required: true }),
   }),
 });
 
@@ -18,32 +51,44 @@ builder.mutationType({
     signup: t.prismaField({
       type: 'User',
       args: {
-        email: t.arg.string({ required: true }),
-        password: t.arg.string({ required: true }),
-        name: t.arg.string(),
-        username: t.arg.string({ required: true }),
+        input: t.arg({ type: SignupInput, required: true }),
       },
-      resolve: async (query, root, args, ctx) => {
-        const hashedPassword = await hashPassword(args.password);
-        const verificationToken = generateVerificationToken();
+      resolve: async (query, _root, { input }, ctx) => {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [{ email: input.email }, { username: input.username }],
+      },
+        });
 
-        const user = await ctx.prisma.user.create({
+        if (existingUser) {
+          throw new GraphQLError(
+            "A user with this email or username already exists"
+          );
+        }
+
+        const hashedPassword = await hash(input.password);
+        const user = await prisma.user.create({
           ...query,
           data: {
-            email: args.email,
-            username: args.username,
+            email: input.email,
+            username: input.username,
+            name: input.name,
             password: hashedPassword,
-            name: args.name,
-            verificationToken: {
-              create: {
-                token: verificationToken,
-                expiresAt: addDays(new Date(), 1),
-              },
-            },
           },
         });
 
-        // Here you would typically send a verification email
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await prisma.verificationToken.create({
+          data: {
+            token: otp,
+            type: "SIGNUP",
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+          },
+        });
+
+        await sendVerificationEmail(user.email, otp);
+
         return user;
       },
     }),
@@ -63,7 +108,7 @@ builder.mutationType({
           throw new Error('Invalid credentials');
         }
 
-        const isValid = await verifyPassword(args.password, user.password);
+        const isValid = await verify(user.password, args.password);
         if (!isValid) {
           throw new Error('Invalid credentials');
         }
@@ -370,24 +415,36 @@ builder.mutationType({
 
         const input = args.input;
 
+        // Check for username uniqueness if username is being updated
+        if (input.username !== undefined && input.username !== user.username) {
+          const existingUser = await ctx.prisma.user.findUnique({
+            where: { username: input.username },
+          });
+          
+          if (existingUser) {
+            throw new Error('Username is already taken');
+          }
+        }
+
         if (input.newPassword) {
           if (!input.currentPassword) {
             throw new Error('Current password is required to set a new password');
           }
 
-          const isValidPassword = await verifyPassword(input.currentPassword, user.password);
+          const isValidPassword = await verify(user.password, input.currentPassword);
           if (!isValidPassword) {
             throw new Error('Current password is incorrect');
           }
         }
 
-        const updateData: any = {};
+        const updateData: Record<string, any> = {};
 
         if (input.name !== undefined) updateData.name = input.name;
+        if (input.username !== undefined) updateData.username = input.username;
         if (input.avatar !== undefined) updateData.avatar = input.avatar;
         if (input.email !== undefined) updateData.email = input.email;
         if (input.newPassword) {
-          updateData.password = await hashPassword(input.newPassword);
+          updateData.password = await hash(input.newPassword);
         }
 
         return ctx.prisma.user.update({
@@ -417,12 +474,12 @@ builder.mutationType({
           throw new Error('User not found');
         }
 
-        const isValid = await verifyPassword(args.currentPassword, user.password);
+        const isValid = await verify(user.password, args.currentPassword);
         if (!isValid) {
           throw new Error('Current password is incorrect');
         }
 
-        const hashedPassword = await hashPassword(args.newPassword);
+        const hashedPassword = await hash(args.newPassword);
 
         return ctx.prisma.user.update({
           ...query,
@@ -592,6 +649,163 @@ builder.mutationType({
           ...query,
           where: { id: args.userId },
         });
+      },
+    }),
+
+    requestEmailVerification: t.boolean({
+      resolve: async (_root, _args, ctx) => {
+        if (!ctx.userId) {
+          throw new GraphQLError("You must be logged in to verify your email");
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: ctx.userId },
+        });
+
+        if (!user) {
+          throw new GraphQLError("User not found");
+        }
+
+        const existingToken = await prisma.verificationToken.findFirst({
+          where: {
+            userId: user.id,
+            type: "SIGNUP",
+            used: false,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        });
+
+        if (existingToken) {
+          throw new GraphQLError("Please wait 60 seconds before requesting another code");
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await prisma.verificationToken.create({
+          data: {
+            token: otp,
+            type: "SIGNUP",
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+          },
+        });
+
+        await sendVerificationEmail(user.email, otp);
+
+        return true;
+      },
+    }),
+
+    verifyEmail: t.boolean({
+      args: {
+        input: t.arg({ type: EmailVerificationInput, required: true }),
+      },
+      resolve: async (_root, { input }, _ctx) => {
+        const token = await prisma.verificationToken.findFirst({
+          where: {
+            token: input.token,
+            type: "SIGNUP",
+            used: false,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        });
+
+        if (!token) {
+          throw new GraphQLError("Invalid or expired verification code");
+        }
+
+        await prisma.verificationToken.update({
+          where: { id: token.id },
+          data: {
+            used: true,
+          },
+        });
+
+        return true;
+      },
+    }),
+
+    requestPasswordReset: t.boolean({
+      args: {
+        input: t.arg({ type: PasswordResetRequestInput, required: true }),
+      },
+      resolve: async (_root, { input }, _ctx) => {
+        const user = await prisma.user.findUnique({
+          where: { email: input.email },
+        });
+
+        if (!user) {
+          throw new GraphQLError("No user found with this email");
+        }
+
+        const existingToken = await prisma.verificationToken.findFirst({
+          where: {
+            userId: user.id,
+            type: "PASSWORD_RESET",
+            used: false,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        });
+
+        if (existingToken) {
+          throw new GraphQLError("Please wait 60 seconds before requesting another code");
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await prisma.verificationToken.create({
+          data: {
+            token: otp,
+            type: "PASSWORD_RESET",
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+          },
+        });
+
+        await sendPasswordResetEmail(user.email, otp);
+
+        return true;
+      },
+    }),
+
+    resetPassword: t.boolean({
+      args: {
+        input: t.arg({ type: PasswordResetInput, required: true }),
+      },
+      resolve: async (_root, { input }, _ctx) => {
+        const token = await prisma.verificationToken.findFirst({
+          where: {
+            token: input.token,
+            type: "PASSWORD_RESET",
+            used: false,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        });
+
+        if (!token) {
+          throw new GraphQLError("Invalid or expired reset code");
+        }
+
+        const hashedPassword = await hash(input.newPassword);
+
+        await Promise.all([
+          prisma.user.update({
+            where: { id: token.userId },
+            data: { password: hashedPassword },
+          }),
+          prisma.verificationToken.update({
+            where: { id: token.id },
+            data: { used: true },
+          }),
+        ]);
+
+        return true;
       },
     }),
   }),
