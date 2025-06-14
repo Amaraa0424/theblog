@@ -44,7 +44,7 @@ Disallow: /*?ref=
 Disallow: /api/preview
 
 # Host directive (helps with canonical URLs)
-Host: https://ourlab.fun
+Host: https://www.ourlab.fun
 
 # Sitemaps
-Sitemap: https://ourlab.fun/sitemap.xml 
+Sitemap: https://www.ourlab.fun/sitemap.xml 

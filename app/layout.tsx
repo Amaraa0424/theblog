@@ -13,7 +13,7 @@ import { StructuredData } from "@/components/SEO";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ourlab.fun"),
+  metadataBase: new URL("https://www.ourlab.fun"),
   title: {
     default: "OurLab.fun - Where Ideas Come to Life",
     template: "%s | OurLab.fun",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     "content creation",
     "storytelling"
   ],
-  authors: [{ name: "Amaraa", url: "https://ourlab.fun" }],
+  authors: [{ name: "Amaraa", url: "https://www.ourlab.fun" }],
   creator: "Amaraa",
   publisher: "OurLab.fun",
   category: "Technology",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://ourlab.fun",
+    url: "https://www.ourlab.fun",
     siteName: "OurLab.fun",
     title: "OurLab.fun - Where Ideas Come to Life",
     description: "A modern blog platform where ideas come to life. Share your thoughts, connect with others, and be part of a community that values authentic expression.",
@@ -94,9 +94,9 @@ export const metadata: Metadata = {
     yahoo: "your-yahoo-verification-code", // Replace with actual verification code
   },
   alternates: {
-    canonical: "https://ourlab.fun",
+    canonical: "https://www.ourlab.fun",
     languages: {
-      "en-US": "https://ourlab.fun",
+      "en-US": "https://www.ourlab.fun",
     },
   },
   other: {

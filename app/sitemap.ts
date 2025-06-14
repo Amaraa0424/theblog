@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://ourlab.fun';
+  const baseUrl = 'https://www.ourlab.fun';
   
   // Static pages
   const staticPages = [
@@ -64,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       fetchPolicy: 'no-cache',
     });
 
-    const postPages = data?.publishedPosts?.map((post: any) => ({
+    const postPages = data?.publishedPosts?.map((post: { id: string; createdAt: string; updatedAt?: string }) => ({
       url: `${baseUrl}/posts/${post.id}`,
       lastModified: new Date(post.updatedAt || post.createdAt),
       changeFrequency: 'weekly' as const,
@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })) || [];
 
     return [...staticPages, ...postPages];
-  } catch (error) {
+  } catch {
     console.log('Sitemap: Using static pages only (GraphQL not available during build)');
     return staticPages;
   }

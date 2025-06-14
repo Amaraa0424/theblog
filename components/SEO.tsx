@@ -27,7 +27,7 @@ export function generateSEOMetadata({
   const defaultTitle = "OurLab.fun - Where Ideas Come to Life";
   const defaultDescription = "A modern blog platform where ideas come to life. Share your thoughts, connect with others, and be part of a community that values authentic expression.";
   const defaultImage = "https://res.cloudinary.com/dolfbqzp3/image/upload/v1749923694/ourlabfun-high-resolution-logo_yodtqj.png";
-  const baseUrl = "https://ourlab.fun";
+  const baseUrl = "https://www.ourlab.fun";
 
   const seoTitle = title ? `${title} | OurLab.fun` : defaultTitle;
   const seoDescription = description || defaultDescription;
@@ -86,7 +86,7 @@ export function StructuredData({
   author,
   tags,
 }: SEOProps) {
-  const baseUrl = "https://ourlab.fun";
+  const baseUrl = "https://www.ourlab.fun";
   const seoUrl = url ? `${baseUrl}${url}` : baseUrl;
   
   // Website structured data

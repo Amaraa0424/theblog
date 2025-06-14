@@ -50,7 +50,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
                         <td style="background-color: #ffffff; padding: 48px 40px 32px 40px; text-align: center; border-bottom: 1px solid #f1f5f9;">
                             <!-- Logo -->
                             <div style="margin-bottom: 32px;">
-                                <img src="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 48px; width: auto; max-width: 200px;" />
+                                <img src="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 48px; width: auto; max-width: 200px;" />
                             </div>
                             
                             <h1 style="color: #0f172a; font-size: 28px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -0.025em;">
@@ -111,7 +111,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
                             
                             <!-- CTA Button -->
                             <div style="text-align: center; margin: 40px 0;">
-                                <a href="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/verify-email?code=${otp}&email=${encodeURIComponent(email)}"
+                                <a href="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/verify-email?code=${otp}&email=${encodeURIComponent(email)}"
                                    style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); transition: all 0.2s;">
                                     ✨ Verify My Account
                                 </a>
@@ -123,7 +123,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
                                     Can't click the button? Copy this link:
                                 </p>
                                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; color: #3b82f6; word-break: break-all;">
-                                    ${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/verify-email?code=${otp}&email=${encodeURIComponent(email)}
+                                    ${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/verify-email?code=${otp}&email=${encodeURIComponent(email)}
                                 </div>
                             </div>
                         </td>
@@ -133,7 +133,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
                     <tr>
                         <td style="background: #f8fafc; padding: 32px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
                             <div style="margin-bottom: 20px;">
-                                <img src="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 32px; width: auto; opacity: 0.7;" />
+                                <img src="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 32px; width: auto; opacity: 0.7;" />
                             </div>
                             
                             <p style="color: #6b7280; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
@@ -214,7 +214,7 @@ export async function sendPasswordResetEmail(email: string, otp: string) {
                         <td style="background-color: #ffffff; padding: 48px 40px 32px 40px; text-align: center; border-bottom: 1px solid #f1f5f9;">
                             <!-- Logo -->
                             <div style="margin-bottom: 32px;">
-                                <img src="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 48px; width: auto; max-width: 200px;" />
+                                <img src="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 48px; width: auto; max-width: 200px;" />
                             </div>
                             
                             <h1 style="color: #0f172a; font-size: 28px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -0.025em;">
@@ -292,7 +292,7 @@ export async function sendPasswordResetEmail(email: string, otp: string) {
                             
                             <!-- CTA Button -->
                             <div style="text-align: center; margin: 40px 0;">
-                                <a href="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/forgot-password"
+                                <a href="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/forgot-password"
                                    style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.5); transition: all 0.2s;">
                                     🔑 Reset My Password
                                 </a>
@@ -304,7 +304,7 @@ export async function sendPasswordResetEmail(email: string, otp: string) {
                                     Can't click the button? Copy this link:
                                 </p>
                                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; color: #ef4444; word-break: break-all;">
-                                    ${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/forgot-password
+                                    ${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/forgot-password
                                 </div>
                             </div>
                         </td>
@@ -314,7 +314,7 @@ export async function sendPasswordResetEmail(email: string, otp: string) {
                     <tr>
                         <td style="background: #f8fafc; padding: 32px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
                             <div style="margin-bottom: 20px;">
-                                <img src="${process.env.NEXTAUTH_URL || 'https://ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 32px; width: auto; opacity: 0.7;" />
+                                <img src="${process.env.NEXTAUTH_URL || 'https://www.ourlab.fun'}/images/ourlabfun-forlight-transparent.png" alt="TheBlog" style="height: 32px; width: auto; opacity: 0.7;" />
                             </div>
                             
                             <p style="color: #6b7280; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
