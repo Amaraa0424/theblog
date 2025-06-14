@@ -10,6 +10,7 @@ declare module 'next-auth' {
     role: Role;
     avatar?: string | null;
     image?: string | null;
+    emailVerified: boolean;
   }
 
   interface Session {
@@ -21,6 +22,7 @@ declare module 'next-auth' {
       role: Role;
       avatar?: string | null;
       image?: string | null;
+      emailVerified: boolean;
     }
   }
 } 

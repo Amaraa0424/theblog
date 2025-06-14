@@ -22,6 +22,7 @@ model User {
   updatedAt            DateTime            @updatedAt
   avatar               String?
   username             String              @unique
+  emailVerified        Boolean             @default(false)
   comments             Comment[]
   CommentLike          CommentLike[]
   followers            Follow[]            @relation("Followers")

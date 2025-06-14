@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { gql, useMutation } from '@apollo/client';
@@ -14,12 +14,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { CategoryCombobox } from '@/components/CategoryCombobox';
 import { ImageUpload } from '@/components/ImageUpload';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { PenTool, Image, Tag, Eye, EyeOff, Save, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 const formSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  subtitle: z.string().optional(),
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
+  subtitle: z.string().max(200, 'Subtitle must be less than 200 characters').optional(),
   content: z.string().min(1, 'Content is required'),
-  image: z.string().min(1, 'Image is required'),
+  image: z.string().min(1, 'Featured image is required'),
   categoryId: z.string().min(1, 'Category is required'),
   published: z.boolean().default(false),
 });
@@ -214,111 +218,253 @@ export default function NewPostPage() {
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (values) => {
+  const onSubmit = async (values: FormValues) => {
     try {
       await createPost({
         variables: values,
       });
       toast.success('Post created successfully');
-      router.push('/');
-    } catch {
-      toast.error('Failed to create post');
+      router.push('/profile/dashboard');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('verify your email')) {
+        toast.error('Please verify your email address before creating posts');
+      } else {
+        toast.error('Failed to create post');
+      }
     }
   };
 
+  const watchedValues = form.watch();
+
   return (
-    <div className="container max-w-4xl py-10">
+    <div className="container max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/profile/dashboard">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <PenTool className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">
+              Create New Post
+            </h1>
+            <p className="text-muted-foreground">
+              Share your thoughts and ideas with the world
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
-          <FormField
-            control={form.control as any}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter post title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control as any}
-            name="subtitle"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Subtitle</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter post subtitle" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control as any}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <RichTextEditor value={field.value} onChange={field.onChange} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control as any}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <CategoryCombobox
-                    value={field.value}
-                    onChange={field.onChange}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <PenTool className="h-5 w-5" />
+                    Post Content
+                  </CardTitle>
+                  <CardDescription>
+                    Write your post title, subtitle, and content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Title *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter an engaging title for your post..." 
+                            className="text-lg h-12 border-2 focus:border-primary/50"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <FormMessage />
+                          <span>{field.value?.length || 0}/100</span>
+                        </div>
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control as any}
-            name="image"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image</FormLabel>
-                <FormControl>
-                  <ImageUpload value={field.value} onChange={field.onChange} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control as any}
-            name="published"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center space-x-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormLabel>Publish immediately</FormLabel>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={loading}>
-            Create Post
-          </Button>
+
+                  <FormField
+                    control={form.control}
+                    name="subtitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Subtitle</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Add a brief description or subtitle (optional)..." 
+                            className="h-11 border-2 focus:border-primary/50"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <FormMessage />
+                          <span>{field.value?.length || 0}/200</span>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Content *</FormLabel>
+                        <FormControl>
+                          <div className="border-2 rounded-lg focus-within:border-primary/50 transition-colors">
+                            <RichTextEditor value={field.value} onChange={field.onChange} />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Featured Image */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="h-5 w-5" />
+                    Featured Image
+                  </CardTitle>
+                  <CardDescription>
+                    Upload a compelling image for your post
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <ImageUpload value={field.value} onChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Category */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Tag className="h-5 w-5" />
+                    Category
+                  </CardTitle>
+                  <CardDescription>
+                    Choose a category for your post
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <CategoryCombobox
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Publishing Options */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    {watchedValues.published ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                    Publishing
+                  </CardTitle>
+                  <CardDescription>
+                    Control when your post goes live
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="published"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-primary/30 transition-colors">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            />
+                          </FormControl>
+                          <div className="flex-1">
+                            <FormLabel className="text-base font-medium cursor-pointer">
+                              Publish immediately
+                            </FormLabel>
+                            <p className="text-sm text-muted-foreground">
+                              Make this post visible to everyone right away
+                            </p>
+                          </div>
+                          <Badge variant={field.value ? "default" : "secondary"}>
+                            {field.value ? "Public" : "Draft"}
+                          </Badge>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <Save className="h-5 w-5 mr-2" />
+                  {loading ? 'Creating Post...' : 'Create Post'}
+                </Button>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => router.back()}
+                  className="w-full h-11 border-2 hover:bg-muted/50"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
         </form>
       </Form>
     </div>

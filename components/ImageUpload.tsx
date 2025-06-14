@@ -32,8 +32,8 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
       if (!file.type.startsWith('image/')) {
         toast.error('Please upload an image file');
-        return;
-      }
+      return;
+    }
 
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
@@ -41,7 +41,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
         return;
       }
 
-      try {
+    try {
         setIsUploading(true);
 
         // Create a FormData instance
@@ -56,7 +56,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
         if (!response.ok) {
           throw new Error('Failed to upload image');
-        }
+      }
 
         const data = await response.json();
         onChange(data.url);
@@ -64,9 +64,9 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
       } catch (error) {
         const err = error as ErrorResponse;
         toast.error(err.message || "Failed to upload image");
-      } finally {
+    } finally {
         setIsUploading(false);
-      }
+    }
     },
     [onChange]
   );
@@ -125,8 +125,8 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm font-medium">Uploading...</p>
             <p className="text-xs text-muted-foreground">Please wait</p>
-          </div>
-        ) : (
+                </div>
+              ) : (
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="rounded-full bg-primary/10 p-3">
               {isDragActive ? (
@@ -137,7 +137,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">
-                {isDragActive
+              {isDragActive
                   ? 'Drop your image here'
                   : value
                   ? 'Change profile picture'
@@ -145,14 +145,14 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
               </p>
               <p className="text-xs text-muted-foreground">
                 Drag & drop or click to browse
-              </p>
-            </div>
+            </p>
+                      </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>PNG, JPG, GIF up to 5MB</span>
             </div>
-          </div>
-        )}
-      </div>
+                </div>
+              )}
+            </div>
 
       {/* Upload Tips */}
       {!value && (

@@ -7,11 +7,12 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
 import { LoadingBar } from "@/components/LoadingBar";
+import { VerificationBanner } from "@/components/VerificationBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://theblog-indol.vercel.app"),
+  metadataBase: new URL("https://ourlab.fun"),
   title: {
     default: "TheBlog",
     template: "%s | TheBlog",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     images: ["/images/logo.jpg"],
-    url: "https://theblog-indol.vercel.app",
+    url: "https://ourlab.fun",
     siteName: "TheBlog",
     title: "TheBlog",
     description: "A modern blog platform for sharing your thoughts and ideas",
@@ -60,6 +61,7 @@ export default function RootLayout({
               <div className="relative min-h-screen flex flex-col">
                 <Navbar />
                 <main className="flex-1 container mx-auto px-4 py-8">
+                  <VerificationBanner />
                   {children}
                 </main>
                 <footer className="border-t py-6 md:py-0">

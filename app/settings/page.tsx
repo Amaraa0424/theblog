@@ -162,19 +162,19 @@ export default function SettingsPage() {
 
         {/* Settings Form */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
+      <Card>
+        <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
                 Personal Information
               </CardTitle>
-              <CardDescription>
+          <CardDescription>
                 Update your personal details and profile picture
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {/* Avatar Section */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -201,64 +201,64 @@ export default function SettingsPage() {
 
                   {/* Personal Details */}
                   <div className="grid gap-6 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <User className="h-4 w-4" />
                             Full Name
                           </FormLabel>
-                          <FormControl>
+                    <FormControl>
                             <Input 
                               placeholder="Enter your full name" 
                               className="h-11"
                               {...field} 
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <AtSign className="h-4 w-4" />
                             Username
                           </FormLabel>
-                          <FormControl>
+                    <FormControl>
                             <Input 
                               placeholder="Choose a unique username" 
                               className="h-11"
                               {...field} 
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                   </div>
 
                   {/* Email (Read-only) */}
-                  <div className="space-y-2">
+              <div className="space-y-2">
                     <FormLabel className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       Email Address
                     </FormLabel>
-                    <Input 
+                <Input 
                       value={user?.email || ''} 
-                      disabled 
+                  disabled 
                       className="h-11 bg-muted/50 cursor-not-allowed"
-                    />
+                />
                     <p className="text-xs text-muted-foreground">
                       Email cannot be changed for security reasons
                     </p>
-                  </div>
+              </div>
 
                   <Separator />
 
@@ -281,12 +281,12 @@ export default function SettingsPage() {
                           Save Changes
                         </>
                       )}
-                    </Button>
+              </Button>
                   </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
         </div>
       </div>
     </div>

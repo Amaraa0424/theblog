@@ -24,6 +24,7 @@ async function validateCredentials(credentials: {
       password: true,
       role: true,
       avatar: true,
+      emailVerified: true,
     },
   });
 
@@ -84,11 +85,41 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.avatar = user.avatar;
         token.image = user.avatar; // Set image to avatar for compatibility
+        token.emailVerified = user.emailVerified;
       }
 
-      if (trigger === 'update' && session) {
-        // Handle session updates
-        return { ...token, ...session.user };
+      if (trigger === 'update') {
+        // Fetch fresh user data from database when session is updated
+        if (token.id) {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+              role: true,
+              avatar: true,
+              emailVerified: true,
+            },
+          });
+
+          if (freshUser) {
+            token.id = freshUser.id;
+            token.email = freshUser.email;
+            token.username = freshUser.username;
+            token.role = freshUser.role;
+            token.name = freshUser.name;
+            token.avatar = freshUser.avatar;
+            token.image = freshUser.avatar;
+            token.emailVerified = freshUser.emailVerified;
+          }
+        }
+
+        // Also handle any session data passed in
+        if (session?.user) {
+          return { ...token, ...session.user };
+        }
       }
 
       return token;
@@ -104,6 +135,7 @@ export const authOptions: NextAuthOptions = {
           role: token.role as Role,
           avatar: token.avatar as string | null,
           image: token.avatar as string | null, // Set image to avatar for compatibility
+          emailVerified: token.emailVerified as boolean,
         };
       }
       return session;

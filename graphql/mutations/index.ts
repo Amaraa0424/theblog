@@ -161,6 +161,16 @@ builder.mutationType({
           throw new Error('Not authenticated');
         }
 
+        // Check if user's email is verified
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: ctx.userId },
+          select: { emailVerified: true },
+        });
+
+        if (!user?.emailVerified) {
+          throw new GraphQLError('Please verify your email address before creating posts');
+        }
+
         return ctx.prisma.post.create({
           ...query,
           data: {
@@ -666,18 +676,21 @@ builder.mutationType({
           throw new GraphQLError("User not found");
         }
 
-        const existingToken = await prisma.verificationToken.findFirst({
+        // Check for tokens created within the last 60 seconds (rate limiting)
+        const recentToken = await prisma.verificationToken.findFirst({
           where: {
             userId: user.id,
             type: "SIGNUP",
-            used: false,
-            expiresAt: {
-              gt: new Date(),
+            createdAt: {
+              gt: new Date(Date.now() - 60 * 1000), // 60 seconds ago
             },
+          },
+          orderBy: {
+            createdAt: 'desc',
           },
         });
 
-        if (existingToken) {
+        if (recentToken) {
           throw new GraphQLError("Please wait 60 seconds before requesting another code");
         }
 
@@ -717,12 +730,20 @@ builder.mutationType({
           throw new GraphQLError("Invalid or expired verification code");
         }
 
-        await prisma.verificationToken.update({
-          where: { id: token.id },
-          data: {
-            used: true,
-          },
-        });
+        await Promise.all([
+          prisma.verificationToken.update({
+            where: { id: token.id },
+            data: {
+              used: true,
+            },
+          }),
+          prisma.user.update({
+            where: { id: token.userId },
+            data: {
+              emailVerified: true,
+            },
+          }),
+        ]);
 
         return true;
       },
@@ -741,18 +762,21 @@ builder.mutationType({
           throw new GraphQLError("No user found with this email");
         }
 
-        const existingToken = await prisma.verificationToken.findFirst({
+        // Check for tokens created within the last 60 seconds (rate limiting)
+        const recentToken = await prisma.verificationToken.findFirst({
           where: {
             userId: user.id,
             type: "PASSWORD_RESET",
-            used: false,
-            expiresAt: {
-              gt: new Date(),
+            createdAt: {
+              gt: new Date(Date.now() - 60 * 1000), // 60 seconds ago
             },
+          },
+          orderBy: {
+            createdAt: 'desc',
           },
         });
 
-        if (existingToken) {
+        if (recentToken) {
           throw new GraphQLError("Please wait 60 seconds before requesting another code");
         }
 

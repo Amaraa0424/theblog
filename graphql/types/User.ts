@@ -1,6 +1,5 @@
 import { builder } from '@/lib/builder';
 import { Role } from '@prisma/client';
-import type { User as PrismaUser } from '@prisma/client';
 
 const RoleEnum = builder.enumType('Role', {
   values: ['USER', 'ADMIN'] as const,
@@ -23,11 +22,12 @@ export const User = builder.prismaObject('User', {
     id: t.exposeID('id'),
     email: t.exposeString('email'),
     username: t.string({
-      resolve: (parent: any) => parent.username,
+      resolve: (parent) => parent.username,
       nullable: false,
     }),
     name: t.exposeString('name', { nullable: true }),
     avatar: t.exposeString('avatar', { nullable: true }),
+    emailVerified: t.exposeBoolean('emailVerified'),
     role: t.field({
       type: RoleEnum,
       resolve: (parent) => parent.role as Role,
