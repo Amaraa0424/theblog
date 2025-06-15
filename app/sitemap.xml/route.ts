@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   const baseUrl = "https://www.ourlab.fun";
 
-  // Static pages
+  // Static pages - Updated for cache invalidation
   const staticPages = [
     {
       url: baseUrl,
