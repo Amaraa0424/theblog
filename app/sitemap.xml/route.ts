@@ -124,7 +124,7 @@ ${allPages
     status: 200,
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
       "X-Robots-Tag": "noindex",
       "ETag": `"sitemap-${Date.now()}"`, // Force cache invalidation
     },
